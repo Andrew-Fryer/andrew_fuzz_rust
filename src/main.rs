@@ -1,4 +1,5 @@
 mod core;
+mod library;
 
 fn main() {
     println!("Hello, world!");

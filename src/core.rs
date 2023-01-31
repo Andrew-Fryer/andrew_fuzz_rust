@@ -1,3 +1,4 @@
+use core::num;
 use std::{collections::HashMap, slice::Iter};
 
 mod feature_vector;
@@ -28,29 +29,59 @@ pub trait Vectorizer {
     fn vectorize(&self) -> FeatureVector;
 }
 pub trait Serializer {
-    fn serialize(&self) -> BinaryStream;
+    fn serialize(&self) -> BitArray;
+}
+
+// I have cool ideas about how to optimize this!
+// we could make it an enum that could be normal or could be a Vec<Box<BitArray>> which is sort of lazy...
+pub struct BitArray<'a> {
+    data: &'a Vec<u8>,
+    offset: i32,
+    len: i32,
+}
+impl BitArray<'_> {
+    pub fn new(num_bits: i32) -> Self {
+        Self {
+            data: Vec::with_capacity((num_bits / 8) as usize),
+            offset: 0,
+            len: num_bits,
+        }
+    }
+    pub fn clone(&self) -> Self {
+        Self {
+            data: self.data,
+            offset: self.offset,
+            len: self.len,
+        }
+    }
+    pub fn advance(&mut self, num_bits: i32) {
+        self.offset += num_bits;
+    }
+    // pub fn extend(&mut self, other: &BitArray) {
+    //     self.data.extend_from_slice(other.asdf());
+    //     self.len += other.len; //
+    // }
+    // pub fn get(&self) -> 
 }
 
 pub struct BinaryStream {
     data: Vec<u8>,
-    pos: usize,
-    bit_pos: u8,
+    bit_pos: i32,
 }
 
 impl BinaryStream {
     pub fn new(data: Vec<u8>) -> Self {
         Self {
             data,
-            pos: 0,
             bit_pos: 0,
         }
     }
-    pub fn eat_byte(&mut self) -> u8 {
-        assert!(self.bit_pos == 0); // todo
-        let b = self.data[self.pos];
-        self.pos += 1;
-        b
-    }
+    // pub fn eat_bits(&mut self, num_bits) -> BitArray {
+    //     let ind = self.bit_pos + num_bits;
+    //     let b = self.data[self.pos];
+    //     self.pos += 1;
+    //     b
+    // }
 }
 
 // pub struct Input {}
@@ -69,7 +100,3 @@ pub struct ParsingProgress {
     pub data_model: Box<dyn DataModel>,
     pub stream: BinaryStream,
 }
-
-////////////////////////////////////
-// asdf
-
