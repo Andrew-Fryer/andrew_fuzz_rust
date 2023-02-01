@@ -1,3 +1,4 @@
+use core::num;
 use std::{rc::Rc, cell::RefCell, ops::{AddAssign, Add}, cmp::PartialEq, fmt::Debug};
 
 // I have cool ideas about how to optimize this!
@@ -20,14 +21,15 @@ impl BitArray {
     pub fn new(data: Vec<u8>, num_bits: Option<i32>) -> Self {
         // num_bits allows the caller to specify that they want non-byte-aligned data
         // we will truncate the number of bits in `data` to match num_bits
-        if let Some(num_bits) = num_bits {
-            todo!();
-        }
-        let len = data.len();
+        let len = if let Some(num_bits) = num_bits {
+            num_bits
+        } else {
+            data.len() as i32 * 8
+        };
         Self {
             data: Rc::new(RefCell::new(data)),
             pos: 0,
-            len: len as i32 * 8,
+            len,
         }
     }
     pub fn clone(&self) -> Self {
@@ -43,10 +45,30 @@ impl BitArray {
         if num_bits > 8 {
             panic!();
         }
-        if num_bits != 8 {
-            todo!();
+        if self.pos % 8 == 0 && num_bits == 8 {
+            self.data.borrow()[(self.pos / 8) as usize]
+        } else {
+            let num_head_bits = 8 - (self.pos % 8) as u8;
+            let num_tail_bits = num_bits - num_head_bits;
+            let head_shift = 8 - num_head_bits;
+            let tail_shift = 8 - num_tail_bits;
+            let mut head_bits = self.data.borrow()[(self.pos / 8) as usize];
+            head_bits >>= head_shift;
+            head_bits <<= head_shift;
+            let mut tail_bits = self.data.borrow()[(self.pos / 8 + 1) as usize];
+            tail_bits <<= tail_shift;
+            tail_bits >>= tail_shift;
+            head_bits | tail_bits
+            // (
+            //     (
+            //         self.data.borrow()[(self.pos / 8) as usize]
+            //         >> head_shift
+            //     ) << head_shift
+            // ) & (
+            //     (
+            //         self.data.borrow()[(self.pos / 8) as usize + 1] << tail_shift) >> head_shift
+            // )
         }
-        self.data.borrow()[(self.pos / 8) as usize]
     }
     pub fn clean_offset(&self) -> bool {
         self.pos % 8 == 0
@@ -62,28 +84,21 @@ impl BitArray {
             return None;
         }
 
-        let result = if num_bits % 8 == 0 {
-            if num_bits % 8 == 0 {
-                Self {
-                    // data: (&self.data[(self.pos)..(self.pos + num_bits)]).into(),
-                    data: Rc::clone(&self.data),
-                    pos: self.pos,
-                    len: num_bits,
-                }
-            } else {
-                todo!();
-            }
-        } else {
-            todo!();
+        let result = Self {
+            data: Rc::clone(&self.data),
+            pos: self.pos,
+            len: num_bits,
         };
 
         self.pos += num_bits;
+        self.len -= num_bits;
 
         Some(result)
     }
     pub fn advance(&mut self, num_bits: i32) {
         self.pos += num_bits;
     }
+    // todo: make this lazy
     pub fn extend(&mut self, other: &BitArray) {
         // first check if someone else has already extended the underlying data beneath us
         if self.pos + self.len < self.data.borrow().len() as i32 {
@@ -92,18 +107,16 @@ impl BitArray {
             let cloned_data = Rc::new(RefCell::new(self.data.borrow().clone()));
             self.data = cloned_data;
         }
-        if !other.clean_offset() {
-            todo!();
-        }
         if !self.clean_offset() {
             todo!();
         }
         let mut other = other.clone();
+        let other_len = other.len();
         while other.len() > 0 {
-            let b = other.peek(8);
+            let b = other.eat(8).unwrap().peek(8);
             self.data.borrow_mut().push(b);
         }
-        self.len += other.len();
+        self.len += other_len;
     }
     // pub fn get(&self) -> 
 }
@@ -132,14 +145,41 @@ impl PartialEq for BitArray {
     }
 }
 
-// impl Debug for BitArray {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         f.debug_struct("BA ")
+impl Debug for BitArray {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // f.debug_struct("BA ")
 
-//         // let data = "".to_string();
-//         let data = self.data.borrow().iter().map(|b| format!("{:#04X?}", b)).collect();
+        // // let data = "".to_string();
+        // let data = self.data.borrow().iter().map(|b| format!("{:#04X?}", b)).collect();
 
-//         f.write_str(data);
-//         std::fmt::Result ()
-//     }
-// }
+        // f.write_str(data);
+        // std::fmt::Result ()
+        println!("{:02X?}", self.data);
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::core::bit_array::BitArray;
+
+    #[test]
+    fn simple() {
+        let data = vec![0x00, 0xA0, 0x66, 0b1111_1011, 65];
+        let mut ba = BitArray::new(data, None);
+        assert_eq!(ba.eat(8), Some(BitArray::new(vec![0x00], None)));
+        assert_eq!(ba.eat(8), Some(BitArray::new(vec![0xA0], None)));
+        assert_eq!(ba, BitArray::new(vec![0x66, 0b1111_1011, 65], None));
+    }
+
+    #[test]
+    fn extend() {
+        let data = vec![0x00, 0xA0, 0x66, 0b1111_1011, 65];
+        let mut ba = BitArray::new(data, None);
+        ba.extend(&BitArray::new(vec![0xFF], None));
+        while ba.len() > 8 {
+            ba.eat(8);
+        }
+        assert_eq!(ba, BitArray::new( vec![0xFF], None));
+    }
+}
