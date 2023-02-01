@@ -1,4 +1,3 @@
-use core::num;
 use std::{collections::HashMap, slice::Iter};
 
 mod bit_array;
