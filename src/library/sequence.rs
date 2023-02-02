@@ -41,14 +41,19 @@ impl Breed for Sequence {
 
 impl Parser for Sequence {
     fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>> {
-        if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
-            todo!()
-            // Some(Box::new(Self {
-            //     data,
-            // }))
-        } else {
-            None
+        let mut new_children = HashMap::new();
+        for (child_name, c) in &self.children {
+            let child_ctx = Context::new(); // todo: do this properly
+            if let Some(new_child) = c.parse(input, ctx) {
+                new_children.insert(child_name.to_string(), Rc::from(new_child));
+            } else {
+                return None;
+            }
         }
+        Some(Box::new(Self {
+            base: self.base.clone(),
+            children: new_children,
+        }))
     }
 }
 

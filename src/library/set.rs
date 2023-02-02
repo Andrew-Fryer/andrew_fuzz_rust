@@ -35,14 +35,19 @@ impl Breed for Set {
 
 impl Parser for Set {
     fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>>{
-        if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
-            todo!()
-            // Some(Box::new(Self {
-            //     data,
-            // }))
-        } else {
-            None
+        let mut new_children = Vec::new();
+        for c in &self.children {
+            let child_ctx = Context::new();
+            if let Some(new_child) = c.parse(input, &child_ctx) {
+                new_children.push(Rc::from(new_child));
+            } else {
+                return None;
+            }
         }
+        Some(Box::new(Self {
+            base: self.base.clone(),
+            children: new_children,
+        }))
     }
 }
 

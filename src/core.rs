@@ -89,3 +89,10 @@ pub enum Children {
     ChildList(Vec<Box<dyn DataModel>>),
     ChildMap(HashMap<String, Box<dyn DataModel>>),
 }
+impl Context {
+    pub fn new() -> Self {
+        Self {
+            children: Children::Zilch,
+        }
+    }
+}
