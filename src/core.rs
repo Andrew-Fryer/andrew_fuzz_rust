@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}};
+use std::{collections::{HashMap, HashSet}, rc::Rc};
 use std::fmt::Write;
 
 pub mod bit_array;
@@ -42,7 +42,7 @@ pub trait Ast: Named {
     }
 }
 pub trait Fuzzer {
-    fn fuzz(&self) -> Vec<Box<dyn DataModel>>;
+    fn fuzz(&self) -> Vec<Rc<dyn DataModel>>;
 }
 
 pub trait Named {

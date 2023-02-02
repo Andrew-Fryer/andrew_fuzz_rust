@@ -65,8 +65,8 @@ impl Ast for U8 {
 }
 
 impl Fuzzer for U8 {
-    fn fuzz(&self) -> Vec<Box<dyn DataModel>> {
-        vec![Box::new(U8::from_u8(0xFF)), Box::new(U8::from_u8(0xAA))]
+    fn fuzz(&self) -> Vec<Rc<dyn DataModel>> {
+        vec![Rc::new(U8::from_u8(0xFF)), Rc::new(U8::from_u8(0xAA))]
     }
 }
 

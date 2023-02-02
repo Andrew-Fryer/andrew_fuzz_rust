@@ -64,8 +64,19 @@ impl Ast for Sequence {
 }
 
 impl Fuzzer for Sequence {
-    fn fuzz(&self) -> Vec<Box<dyn DataModel>> {
-        todo!()
+    fn fuzz(&self) -> Vec<Rc<dyn DataModel>> {
+        let mut result: Vec<Rc<dyn DataModel>> = Vec::new();
+        for (child_name, c) in &self.children {
+            for mutated_child in c.fuzz() {
+                let mut mutated_children = self.children.clone(); // I believe Rc will make this shallow
+                mutated_children.insert(child_name.to_string(), Rc::from(mutated_child));
+                result.push(Rc::new(Self {
+                    base: self.base.clone(),
+                    children: mutated_children,
+                }));
+            }
+        }
+        result
     }
 }
 

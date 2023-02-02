@@ -58,8 +58,20 @@ impl Ast for Set {
 }
 
 impl Fuzzer for Set {
-    fn fuzz(&self) -> Vec<Box<dyn DataModel>> {
-        todo!()
+    // todo: this is kind of a silly way to fuzz in all honesty...
+    fn fuzz(&self) -> Vec<Rc<dyn DataModel>> {
+        let mut result: Vec<Rc<dyn DataModel>> = Vec::new();
+        for (i, c) in self.children.iter().enumerate() {
+            for mutated_child in c.fuzz() {
+                let mut mutated_children = self.children.clone(); // I believe Rc will make this shallow
+                mutated_children[i] = Rc::from(mutated_child);
+                result.push(Rc::new(Self {
+                    base: self.base.clone(),
+                    children: mutated_children,
+                }));
+            }
+        }
+        result
     }
 }
 
