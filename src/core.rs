@@ -1,4 +1,4 @@
-use std::{collections::HashMap, slice::Iter};
+use std::{collections::HashMap};
 
 mod bit_array;
 use bit_array::BitArray;
@@ -16,7 +16,7 @@ pub trait Breed {
 }
 
 pub trait Parser {
-    fn parse(&self, input: BinaryStream, ctx: Context) -> dyn DataModel; // why don't I need a box around `dyn DataModel`?
+    fn parse(&self, input: BitArray, ctx: Context) -> dyn DataModel; // why don't I need a box around `dyn DataModel`?
 }
 pub trait Ast {
     fn debug(&self) -> String;
@@ -33,26 +33,6 @@ pub trait Serializer {
     fn serialize(&self) -> BitArray;
 }
 
-pub struct BinaryStream {
-    data: Vec<u8>,
-    bit_pos: i32,
-}
-
-impl BinaryStream {
-    pub fn new(data: Vec<u8>) -> Self {
-        Self {
-            data,
-            bit_pos: 0,
-        }
-    }
-    // pub fn eat_bits(&mut self, num_bits) -> BitArray {
-    //     let ind = self.bit_pos + num_bits;
-    //     let b = self.data[self.pos];
-    //     self.pos += 1;
-    //     b
-    // }
-}
-
 // pub struct Input {}
 pub struct Context {
     // parent: Option<dyn DataModel>,
@@ -67,5 +47,5 @@ pub enum Children {
 
 pub struct ParsingProgress {
     pub data_model: Box<dyn DataModel>,
-    pub stream: BinaryStream,
+    pub stream: BitArray,
 }
