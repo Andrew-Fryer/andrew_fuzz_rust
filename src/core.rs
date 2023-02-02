@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::{collections::{HashMap, HashSet}};
 
 pub mod bit_array;
 use bit_array::BitArray;
@@ -6,6 +6,21 @@ pub mod feature_vector;
 use feature_vector::FeatureVector;
 
 pub trait DataModel: Breed + Cloneable + Parser + Ast + Fuzzer + Vectorizer + Serializer {}
+
+pub struct DataModelBase {
+    name: String,
+}
+
+impl DataModelBase {
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+        }
+    }
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+}
 
 pub trait Cloneable {
     fn clone(&self) -> Box<dyn DataModel>;
@@ -16,7 +31,7 @@ pub trait Breed {
 }
 
 pub trait Parser {
-    fn parse(&self, input: BitArray, ctx: Context) -> Option<Box<dyn DataModel>>;
+    fn parse(&self, input: BitArray, ctx: Context) -> Option<ParsingProgress>;
 }
 pub trait Ast {
     fn debug(&self) -> String;
@@ -26,7 +41,12 @@ pub trait Fuzzer {
 }
 
 pub trait Vectorizer {
-    fn features(&self) -> FeatureVector;
+    fn do_features(&self, features: HashSet<String>); // todo: change to str?
+    fn features(&self) -> FeatureVector {
+        let mut features = HashSet::new();
+        self.do_features(features);
+        FeatureVector::new(features.into_iter().collect())
+    }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32);
     fn vectorize(&self) -> FeatureVector {
         let mut fv = self.features();
@@ -53,4 +73,19 @@ pub enum Children {
 pub struct ParsingProgress {
     pub data_model: Box<dyn DataModel>,
     pub stream: BitArray,
+}
+
+impl ParsingProgress {
+    pub fn new(data_model: Box<dyn DataModel>, stream: BitArray) -> Self {
+        Self {
+            data_model,
+            stream,
+        }
+    }
+    pub fn data_model(&self) -> &Box<dyn DataModel> {
+        &self.data_model
+    }
+    pub fn stream(&self) -> &BitArray {
+        &self.stream
+    }
 }

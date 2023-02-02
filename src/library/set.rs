@@ -1,4 +1,6 @@
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector};
+use std::collections::HashSet;
+
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress};
 
 pub struct Set {
     children: Vec<Box<dyn DataModel>>,
@@ -17,7 +19,7 @@ impl Breed for Set {
 }
 
 impl Parser for Set {
-    fn parse(&self, input: BitArray, ctx: Context) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: BitArray, ctx: Context) -> Option<ParsingProgress> {
         if let Some(data) = input.clone().eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             todo!()
             // Some(Box::new(Self {
@@ -42,8 +44,8 @@ impl Fuzzer for Set {
 }
 
 impl Vectorizer for Set {
-    fn features(&self) -> FeatureVector {
-        todo!();
+    fn do_features(&self, features: HashSet<String>) {
+        features.insert(self.name());
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
         fv.tally("Set".to_string(), depth);

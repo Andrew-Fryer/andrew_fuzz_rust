@@ -1,10 +1,24 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, DataModelBase};
 
 pub struct Sequence {
+    base: DataModelBase,
     // bnt: BranchingNonTerminal,
     children: HashMap<String, Box<dyn DataModel>>,
+}
+
+impl Sequence {
+    pub fn new(children: HashMap<String, Box<dyn DataModel>>) -> Self {
+        Self {
+            base: DataModelBase::new("Sequence".to_string()),
+            children,
+        }
+    }
+    // todo: this should probably be an interface or something...
+    pub fn name(&self) -> &String {
+        self.base.name()
+    }
 }
 
 impl Cloneable for Sequence {
@@ -20,7 +34,7 @@ impl Breed for Sequence {
 }
 
 impl Parser for Sequence {
-    fn parse(&self, input: BitArray, ctx: Context) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: BitArray, ctx: Context) -> Option<ParsingProgress> {
         if let Some(data) = input.clone().eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             todo!()
             // Some(Box::new(Self {
@@ -45,8 +59,8 @@ impl Fuzzer for Sequence {
 }
 
 impl Vectorizer for Sequence {
-    fn features(&self) -> FeatureVector {
-        todo!();
+    fn do_features(&self, features: HashSet<String>) {
+        features.insert(self.name().to_string());
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
         fv.tally("Sequence".to_string(), depth);

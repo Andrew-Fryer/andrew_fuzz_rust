@@ -1,4 +1,7 @@
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed};
+use std::collections::HashSet;
+use std::fmt::Write;
+
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, ParsingProgress};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
 
@@ -8,10 +11,14 @@ pub struct U8 {
 }
 
 impl U8 {
-    pub fn new() -> U8 {
+    pub fn new() -> Self {
+        Self::from_u8(0x00)
+    }
+    pub fn from_u8(data: u8) -> Self {
         Self {
-            data: BitArray::new(vec![0x00], None)
+            data: BitArray::new(vec![data], None)
         }
+        
     }
 }
 
@@ -30,7 +37,7 @@ impl Breed for U8 {
 }
 
 impl Parser for U8 {
-    fn parse(&self, input: BitArray, ctx: Context) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: BitArray, ctx: Context) -> Option<ParsingProgress> {
         if let Some(data) = input.clone().eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             todo!()
             // Some(Box::new(Self {
@@ -44,19 +51,21 @@ impl Parser for U8 {
 
 impl Ast for U8 {
     fn debug(&self) -> String {
-        "".to_string()
+        let mut result = String::new();
+        write!(result, "{:X}", self.data.peek(8));
+        result
     }
 }
 
 impl Fuzzer for U8 {
     fn fuzz(&self) -> Vec<Box<dyn DataModel>> {
-        todo!()
+        vec![Box::new(U8::from_u8(0xFF)), Box::new(U8::from_u8(0xAA))]
     }
 }
 
 impl Vectorizer for U8 {
-    fn features(&self) -> FeatureVector {
-        todo!();
+    fn do_features(&self, features: HashSet<String>) {
+        features.insert(self.name());
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
         fv.tally("U8".to_string(), depth);
@@ -65,6 +74,6 @@ impl Vectorizer for U8 {
 
 impl Serializer for U8 {
     fn serialize(&self) -> BitArray {
-        todo!()
+        self.data.clone()
     }
 }
