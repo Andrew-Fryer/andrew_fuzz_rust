@@ -1,15 +1,29 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, rc::Rc};
 
 use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, Named, DataModelBase};
 
 pub struct Set {
-    base: DataModelBase, // todo: I think DataModels should share DataModelBases
-    children: Vec<Box<dyn DataModel>>,
+    base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases
+    children: Vec<Rc<dyn DataModel>>,
 }
+
+impl Set {
+    pub fn new(children: Vec<Rc<dyn DataModel>>) -> Self {
+        Self {
+            base: Rc::new(DataModelBase::new("Set".to_string())),
+            children,
+        }
+    }
+}
+
+impl DataModel for Set {}
 
 impl Cloneable for Set {
     fn clone(&self) -> Box<dyn DataModel> {
-        todo!();
+        Box::new(Self {
+            base: self.base.clone(),
+            children: self.children.clone(), // todo: make sure this isn't a deep (recursive) clone
+        })
     }
 }
 
@@ -53,7 +67,10 @@ impl Named for Set {
 impl Vectorizer for Set {}
 
 impl Serializer for Set {
-    fn serialize(&self) -> BitArray {
-        todo!()
+    // todo: avoid duplicate code between here and Sequence by introducing a `BranchingNonTerminal` trait
+    fn do_serialization(&self, ba: &mut BitArray) {
+        for c in &self.children {
+            c.do_serialization(ba);
+        }
     }
 }

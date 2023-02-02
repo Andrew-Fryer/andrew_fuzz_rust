@@ -70,7 +70,12 @@ pub trait Vectorizer: Named {
     }
 }
 pub trait Serializer {
-    fn serialize(&self) -> BitArray;
+    fn do_serialization(&self, ba: &mut BitArray);
+    fn serialize(&self) -> BitArray {
+        let mut ba = BitArray::fresh();
+        self.do_serialization(&mut ba);
+        ba
+    }
 }
 
 // pub struct Input {}

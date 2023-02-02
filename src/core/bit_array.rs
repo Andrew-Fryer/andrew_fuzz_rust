@@ -40,6 +40,9 @@ impl BitArray {
             len,
         }
     }
+    pub fn fresh() -> Self {
+        Self::new(vec![], None)
+    }
     pub fn from_file(path: String) -> std::io::Result<Self> {
         let path = std::path::Path::new(&path);
         std::fs::read(path).map(|vec| Self::new(vec, None))

@@ -1,12 +1,13 @@
 use std::collections::HashSet;
 use std::fmt::Write;
+use std::rc::Rc;
 
 use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, ParsingProgress, Named, DataModelBase};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
 
 pub struct U8 {
-    base: DataModelBase,
+    base: Rc<DataModelBase>,
     // data: u8,
     data: BitArray,
 }
@@ -17,7 +18,7 @@ impl U8 {
     }
     pub fn from_u8(data: u8) -> Self {
         Self {
-            base: DataModelBase::new("U8".to_string()),
+            base: Rc::new(DataModelBase::new("U8".to_string())),
             data: BitArray::new(vec![data], None),
         }
         
@@ -28,7 +29,10 @@ impl DataModel for U8 {}
 
 impl Cloneable for U8 {
     fn clone(&self) -> Box<dyn DataModel> {
-        todo!();
+        Box::new(Self {
+            base: self.base.clone(),
+            data: self.data.clone(),
+        })
     }
 }
 
@@ -74,7 +78,7 @@ impl Named for U8 {
 impl Vectorizer for U8 {}
 
 impl Serializer for U8 {
-    fn serialize(&self) -> BitArray {
-        self.data.clone()
+    fn do_serialization(&self, ba: &mut BitArray) {
+        ba.extend(&self.data);
     }
 }

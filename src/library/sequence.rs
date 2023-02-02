@@ -1,29 +1,35 @@
-use std::collections::{HashMap, HashSet};
+use std::{collections::{HashMap, HashSet}, rc::Rc};
 
 use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, DataModelBase, Named};
 
 pub struct Sequence {
-    base: DataModelBase, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
+    base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
     // bnt: BranchingNonTerminal,
-    children: HashMap<String, Box<dyn DataModel>>,
+    children: HashMap<String, Rc<dyn DataModel>>,
 }
 
 impl Sequence {
-    pub fn new(children: HashMap<String, Box<dyn DataModel>>) -> Self {
+    pub fn new(children: HashMap<String, Rc<dyn DataModel>>) -> Self {
         Self {
-            base: DataModelBase::new("Sequence".to_string()),
+            base: Rc::new(DataModelBase::new("Sequence".to_string())),
             children,
         }
     }
     // todo: this should probably be an interface or something...
+    // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#
     pub fn name(&self) -> &String {
         self.base.name()
     }
 }
 
+impl DataModel for Sequence {}
+
 impl Cloneable for Sequence {
     fn clone(&self) -> Box<dyn DataModel> {
-        todo!();
+        Box::new(Self{
+            base: self.base.clone(),
+            children: self.children.clone(),
+        })
     }
 }
 
@@ -67,7 +73,9 @@ impl Named for Sequence {
 impl Vectorizer for Sequence {}
 
 impl Serializer for Sequence {
-    fn serialize(&self) -> BitArray {
-        todo!()
+    fn do_serialization(&self, ba: &mut BitArray) {
+        for (child_name, c) in &self.children {
+            c.do_serialization(ba);
+        }
     }
 }
