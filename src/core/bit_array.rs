@@ -41,6 +41,14 @@ impl BitArray {
             len,
         }
     }
+    pub fn from_file(path: String) -> std::io::Result<Self> {
+        let path = std::path::Path::new(&path);
+        std::fs::read(path).map(|vec| Self::new(vec, None))
+    }
+    pub fn to_file(&self, path: String) {
+        std::fs::write::<String, &Vec<u8>>(path, self.data.borrow().as_ref());
+        // std::fs::write(path, self.data);
+    }
     pub fn clone(&self) -> Self {
         Self {
             data: self.data.clone(),
