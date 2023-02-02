@@ -45,29 +45,41 @@ impl BitArray {
         if num_bits > 8 {
             panic!();
         }
+        if num_bits as i32 > self.len {
+            panic!();
+        }
         if self.pos % 8 == 0 && num_bits == 8 {
             self.data.borrow()[(self.pos / 8) as usize]
         } else {
-            let num_head_bits = 8 - (self.pos % 8) as u8;
-            let num_tail_bits = num_bits - num_head_bits;
+            let num_available_head_bits = 8 - (self.pos % 8) as u8;
+            let num_head_bits = if num_bits > num_available_head_bits {
+                num_available_head_bits
+            } else {
+                num_bits
+            };
             let head_shift = 8 - num_head_bits;
-            let tail_shift = 8 - num_tail_bits;
             let mut head_bits = self.data.borrow()[(self.pos / 8) as usize];
             head_bits >>= head_shift;
             head_bits <<= head_shift;
-            let mut tail_bits = self.data.borrow()[(self.pos / 8 + 1) as usize];
-            tail_bits <<= tail_shift;
-            tail_bits >>= tail_shift;
-            head_bits | tail_bits
-            // (
-            //     (
-            //         self.data.borrow()[(self.pos / 8) as usize]
-            //         >> head_shift
-            //     ) << head_shift
-            // ) & (
-            //     (
-            //         self.data.borrow()[(self.pos / 8) as usize + 1] << tail_shift) >> head_shift
-            // )
+            if num_head_bits >= num_bits {
+                head_bits
+            } else {
+                let num_tail_bits = num_bits - num_head_bits;
+                let tail_shift = 8 - num_tail_bits;
+                let mut tail_bits = self.data.borrow()[((self.pos + num_bits as i32) / 8) as usize];
+                tail_bits >>= tail_shift;
+                tail_bits <<= tail_shift;
+                head_bits | tail_bits
+                // (
+                //     (
+                //         self.data.borrow()[(self.pos / 8) as usize]
+                //         >> head_shift
+                //     ) << head_shift
+                // ) & (
+                //     (
+                //         self.data.borrow()[(self.pos / 8) as usize + 1] << tail_shift) >> head_shift
+                // )
+            }
         }
     }
     pub fn clean_offset(&self) -> bool {
@@ -108,12 +120,25 @@ impl BitArray {
             self.data = cloned_data;
         }
         if !self.clean_offset() {
-            todo!();
+            let mut data = self.data.borrow_mut();
+            let num_bits_free_in_self = self.len % 8;
+            let num_bits = if num_bits_free_in_self < other.len() {
+                num_bits_free_in_self
+            } else {
+                other.len()
+            };
+            let data_len = data.len();
+            data[data_len - 1] |= other.peek(num_bits as u8) << (num_bits_free_in_self - num_bits);
         }
         let mut other = other.clone();
         let other_len = other.len();
         while other.len() > 0 {
-            let b = other.eat(8).unwrap().peek(8);
+            let num_bits = if other.len() > 8 {
+                8
+            } else {
+                other.len()
+            };
+            let b = other.eat(num_bits).unwrap().peek(num_bits as u8);
             self.data.borrow_mut().push(b);
         }
         self.len += other_len;
@@ -135,9 +160,15 @@ impl PartialEq for BitArray {
         let mut a = self.clone();
         let mut b = other.clone();
         while a.len() > 0 {
-            let a_val = a.eat(8).unwrap();
-            let b_val = b.eat(8).unwrap();
-            if a_val.peek(8) != b_val.peek(8) {
+            let a_len = a.len();
+            let num_bits = if a_len > 8 {
+                8
+            } else {
+                a_len
+            };
+            let a_val = a.eat(num_bits).unwrap();
+            let b_val = b.eat(num_bits).unwrap();
+            if a_val.peek(num_bits as u8) != b_val.peek(num_bits as u8) {
                 return false;
             }
         }
@@ -180,6 +211,22 @@ mod tests {
         while ba.len() > 8 {
             ba.eat(8);
         }
-        assert_eq!(ba, BitArray::new( vec![0xFF], None));
+        assert_eq!(ba, BitArray::new(vec![0xFF], None));
+    }
+
+    #[test]
+    fn bit_wise() {
+        let mut ba = BitArray::new(vec![0xA9], Some(7));
+        assert_eq!(ba.eat(4), Some(BitArray::new(vec![0xA0], Some(4))));
+        assert_eq!(ba.len(), 3);
+        ba.extend(&BitArray::new(vec![0x7F], Some(2)));
+        assert_eq!(ba.len(), 5);
+        ba.extend(&BitArray::new(vec![0x0F], Some(8)));
+        assert_eq!(ba.len(), 13);
+        let x = 11;
+        assert_eq!(ba.eat(x), Some(BitArray::new(vec![0x88, 0x60], Some(x))));
+        assert_eq!(ba.len(), 2);
+        assert_eq!(ba, BitArray::new(vec![0b1100_0000], Some(2)));
+        assert_eq!(ba.eat(3), None);
     }
 }
