@@ -42,7 +42,7 @@ pub trait Ast: Named {
     }
 }
 pub trait Fuzzer {
-    fn fuzz(&self) -> Vec<Rc<dyn DataModel>>;
+    fn fuzz(&self) -> Vec<Rc<dyn DataModel>>; // todo: should this return an Iter instead for performance reasons?
 }
 
 pub trait Named {
