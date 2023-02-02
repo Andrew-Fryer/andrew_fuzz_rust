@@ -10,8 +10,7 @@ fn main() {
     let ctx = Context {
         children: Children::Zilch,
     };
-    let parse_obj = grammar.parse(&mut input, &ctx).unwrap();
-    let ast = parse_obj.data_model();
+    let ast = grammar.parse(&mut input, &ctx).unwrap();
     let fuzz = ast.fuzz();
     let mut fvs = Vec::new();
     for f in fuzz {

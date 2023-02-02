@@ -1,6 +1,6 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, Named, DataModelBase};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, Named, DataModelBase};
 
 pub struct Set {
     base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases
@@ -34,7 +34,7 @@ impl Breed for Set {
 }
 
 impl Parser for Set {
-    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<ParsingProgress> {
+    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>>{
         if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             todo!()
             // Some(Box::new(Self {

@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet}, rc::Rc};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, DataModelBase, Named};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named};
 
 pub struct Sequence {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
@@ -40,7 +40,7 @@ impl Breed for Sequence {
 }
 
 impl Parser for Sequence {
-    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<ParsingProgress> {
+    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>> {
         if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             todo!()
             // Some(Box::new(Self {
