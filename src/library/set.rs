@@ -4,14 +4,19 @@ use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzze
 
 pub struct Set {
     base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases
+    child_prototype: Rc<dyn DataModel>,
     children: Vec<Rc<dyn DataModel>>,
+    predicate: Rc<dyn Fn(&Context) -> bool>,
 }
 
 impl Set {
-    pub fn new(children: Vec<Rc<dyn DataModel>>) -> Self {
+    // Should I just make children an empty vec?
+    pub fn new(child_prototype: Rc<dyn DataModel>, children: Vec<Rc<dyn DataModel>>, predicate: Rc<dyn Fn(&Context) -> bool>) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Set".to_string())),
+            child_prototype,
             children,
+            predicate,
         }
     }
 }
@@ -22,7 +27,9 @@ impl Cloneable for Set {
     fn clone(&self) -> Box<dyn DataModel> {
         Box::new(Self {
             base: self.base.clone(),
+            child_prototype: self.child_prototype.clone(),
             children: self.children.clone(), // todo: make sure this isn't a deep (recursive) clone
+            predicate: self.predicate.clone(),
         })
     }
 }
@@ -36,9 +43,9 @@ impl Breed for Set {
 impl Parser for Set {
     fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>>{
         let mut new_children = Vec::new();
-        for c in &self.children {
-            let child_ctx = Context::new();
-            if let Some(new_child) = c.parse(input, &child_ctx) {
+        let child_ctx = Context::new();
+        while (self.predicate)(&child_ctx) {
+            if let Some(new_child) = self.child_prototype.parse(input, &child_ctx) {
                 new_children.push(Rc::from(new_child));
             } else {
                 return None;
@@ -46,7 +53,9 @@ impl Parser for Set {
         }
         Some(Box::new(Self {
             base: self.base.clone(),
+            child_prototype: self.child_prototype.clone(),
             children: new_children,
+            predicate: self.predicate.clone(),
         }))
     }
 }
@@ -67,7 +76,9 @@ impl Fuzzer for Set {
                 mutated_children[i] = Rc::from(mutated_child);
                 result.push(Rc::new(Self {
                     base: self.base.clone(),
+                    child_prototype: self.child_prototype.clone(),
                     children: mutated_children,
+                    predicate: self.predicate.clone(),
                 }));
             }
         }
