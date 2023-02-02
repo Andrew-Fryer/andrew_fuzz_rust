@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, Named, DataModelBase};
 
 pub struct Set {
+    base: DataModelBase, // todo: I think DataModels should share DataModelBases
     children: Vec<Box<dyn DataModel>>,
 }
 
@@ -43,14 +44,13 @@ impl Fuzzer for Set {
     }
 }
 
-impl Vectorizer for Set {
-    fn do_features(&self, features: HashSet<String>) {
-        features.insert(self.name());
-    }
-    fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
-        fv.tally("Set".to_string(), depth);
+impl Named for Set {
+    fn name(&self) -> &String {
+        self.base.name()
     }
 }
+
+impl Vectorizer for Set {}
 
 impl Serializer for Set {
     fn serialize(&self) -> BitArray {

@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, DataModelBase};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, ParsingProgress, DataModelBase, Named};
 
 pub struct Sequence {
-    base: DataModelBase,
+    base: DataModelBase, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
     // bnt: BranchingNonTerminal,
     children: HashMap<String, Box<dyn DataModel>>,
 }
@@ -58,14 +58,13 @@ impl Fuzzer for Sequence {
     }
 }
 
-impl Vectorizer for Sequence {
-    fn do_features(&self, features: HashSet<String>) {
-        features.insert(self.name().to_string());
-    }
-    fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
-        fv.tally("Sequence".to_string(), depth);
+impl Named for Sequence {
+    fn name(&self) -> &String {
+        self.base.name()
     }
 }
+
+impl Vectorizer for Sequence {}
 
 impl Serializer for Sequence {
     fn serialize(&self) -> BitArray {
