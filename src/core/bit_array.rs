@@ -18,10 +18,16 @@ pub struct BitArray {
     len: i32,
 }
 impl BitArray {
-    pub fn new(data: Vec<u8>, num_bits: Option<i32>) -> Self {
+    pub fn new(mut data: Vec<u8>, num_bits: Option<i32>) -> Self {
         // num_bits allows the caller to specify that they want non-byte-aligned data
         // we will truncate the number of bits in `data` to match num_bits
         let len = if let Some(num_bits) = num_bits {
+            let data_len = data.len();
+            let num_bits_to_zero = (8 - (num_bits % 8)) % 8;
+            data[data_len - 1] >>= num_bits_to_zero;
+            data[data_len - 1] <<= num_bits_to_zero;
+            // data[data_len - 1].checked_shl(num_bits_to_zero).unwrap_or(0);
+            // data[data_len - 1].checked_shr(num_bits_to_zero).unwrap_or(0);
             num_bits
         } else {
             data.len() as i32 * 8
@@ -45,40 +51,37 @@ impl BitArray {
         if num_bits > 8 {
             panic!();
         }
+        if num_bits == 0 {
+            return 0;
+        }
         if num_bits as i32 > self.len {
             panic!();
         }
         if self.pos % 8 == 0 && num_bits == 8 {
             self.data.borrow()[(self.pos / 8) as usize]
         } else {
-            let num_available_head_bits = 8 - (self.pos % 8) as u8;
-            let num_head_bits = if num_bits > num_available_head_bits {
-                num_available_head_bits
-            } else {
-                num_bits
-            };
-            let head_shift = 8 - num_head_bits;
+            let head_start = self.pos % 8;
             let mut head_bits = self.data.borrow()[(self.pos / 8) as usize];
-            head_bits >>= head_shift;
-            head_bits <<= head_shift;
-            if num_head_bits >= num_bits {
-                head_bits
-            } else {
-                let num_tail_bits = num_bits - num_head_bits;
-                let tail_shift = 8 - num_tail_bits;
-                let mut tail_bits = self.data.borrow()[((self.pos + num_bits as i32) / 8) as usize];
-                tail_bits >>= tail_shift;
-                tail_bits <<= tail_shift;
+            head_bits <<= head_start;
+            let mut head_end = head_start + num_bits as i32;
+            let tail_start = 0;
+            let mut tail_end = 0;
+            if head_end > 8 {
+                tail_end = head_end - 8;
+                head_end = 8;
+
+                // let mut tail_bits = self.data.borrow()[((self.pos + num_bits as i32) / 8) as usize];
+                let mut tail_bits = self.data.borrow()[((self.pos as i32) / 8 + 1) as usize];
+                let tail_bits_to_zero = 8 - tail_end;
+                tail_bits >>= tail_bits_to_zero;
+                tail_bits <<= tail_bits_to_zero;
+                tail_bits >>= head_end - head_start;
                 head_bits | tail_bits
-                // (
-                //     (
-                //         self.data.borrow()[(self.pos / 8) as usize]
-                //         >> head_shift
-                //     ) << head_shift
-                // ) & (
-                //     (
-                //         self.data.borrow()[(self.pos / 8) as usize + 1] << tail_shift) >> head_shift
-                // )
+            } else {
+                let head_bits_to_zero = 8 - head_end;
+                head_bits >>= head_start + head_bits_to_zero;
+                head_bits <<= head_start + head_bits_to_zero;
+                head_bits
             }
         }
     }
@@ -119,19 +122,20 @@ impl BitArray {
             let cloned_data = Rc::new(RefCell::new(self.data.borrow().clone()));
             self.data = cloned_data;
         }
+        // We don't want to mutate `other`, so we clone it.
+        let mut other = other.clone();
+        let other_len = other.len();
+        let mut data = self.data.borrow_mut();
         if !self.clean_offset() {
-            let mut data = self.data.borrow_mut();
-            let num_bits_free_in_self = self.len % 8;
+            let num_bits_free_in_self = (8 - ((self.pos + self.len) % 8) % 8);
             let num_bits = if num_bits_free_in_self < other.len() {
                 num_bits_free_in_self
             } else {
                 other.len()
             };
             let data_len = data.len();
-            data[data_len - 1] |= other.peek(num_bits as u8) << (num_bits_free_in_self - num_bits);
+            data[data_len - 1] |= other.eat(num_bits).unwrap().peek(num_bits as u8) >> (8 - num_bits_free_in_self);
         }
-        let mut other = other.clone();
-        let other_len = other.len();
         while other.len() > 0 {
             let num_bits = if other.len() > 8 {
                 8
@@ -139,7 +143,7 @@ impl BitArray {
                 other.len()
             };
             let b = other.eat(num_bits).unwrap().peek(num_bits as u8);
-            self.data.borrow_mut().push(b);
+            data.push(b); // for some reason, this isn't mutating self.data <- I think it just isn't showing up in the debugger...
         }
         self.len += other_len;
     }
@@ -168,7 +172,9 @@ impl PartialEq for BitArray {
             };
             let a_val = a.eat(num_bits).unwrap();
             let b_val = b.eat(num_bits).unwrap();
-            if a_val.peek(num_bits as u8) != b_val.peek(num_bits as u8) {
+            let t1 = a_val.peek(num_bits as u8);
+            let t2 = b_val.peek(num_bits as u8);
+            if t1 != t2 {
                 return false;
             }
         }
