@@ -32,7 +32,7 @@ pub trait Breed {
 }
 
 pub trait Parser {
-    fn parse(&self, input: BitArray, ctx: Context) -> Option<ParsingProgress>;
+    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<ParsingProgress>;
 }
 pub trait Ast: Named {
     fn debug(&self) -> String {
@@ -90,6 +90,8 @@ pub enum Children {
     ChildMap(HashMap<String, Box<dyn DataModel>>),
 }
 
+// todo: can I just replace this with Box<dyn DataModel>?
+// My thinking is that if parse mutates its input: BitArray, then we don't need this at all...
 pub struct ParsingProgress {
     data_model: Box<dyn DataModel>,
     stream: BitArray,

@@ -40,8 +40,8 @@ impl Breed for Sequence {
 }
 
 impl Parser for Sequence {
-    fn parse(&self, input: BitArray, ctx: Context) -> Option<ParsingProgress> {
-        if let Some(data) = input.clone().eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
+    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<ParsingProgress> {
+        if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             todo!()
             // Some(Box::new(Self {
             //     data,

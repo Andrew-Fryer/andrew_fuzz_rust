@@ -43,12 +43,13 @@ impl Breed for U8 {
 }
 
 impl Parser for U8 {
-    fn parse(&self, input: BitArray, ctx: Context) -> Option<ParsingProgress> {
-        if let Some(data) = input.clone().eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
-            todo!()
-            // Some(Box::new(Self {
-            //     data,
-            // }))
+    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<ParsingProgress> {
+        if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
+            let data_model = Self {
+                base: self.base.clone(),
+                data,
+            };
+            Some(ParsingProgress::new(Box::new(data_model), input.clone()))
         } else {
             None
         }
