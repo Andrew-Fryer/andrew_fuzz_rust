@@ -28,6 +28,9 @@ impl BitArray {
             data[data_len - 1] <<= num_bits_to_zero;
             // data[data_len - 1].checked_shl(num_bits_to_zero).unwrap_or(0);
             // data[data_len - 1].checked_shr(num_bits_to_zero).unwrap_or(0);
+            if num_bits > data.len() as i32 * 8 {
+                panic!();
+            }
             num_bits
         } else {
             data.len() as i32 * 8
@@ -88,6 +91,9 @@ impl BitArray {
     pub fn clean_offset(&self) -> bool {
         self.pos % 8 == 0
     }
+    pub fn clean_end_offset(&self) -> bool {
+        (self.pos + self.len) % 8 == 0
+    }
     pub fn len(&self) -> i32 {
         self.len
     }
@@ -126,7 +132,7 @@ impl BitArray {
         let mut other = other.clone();
         let other_len = other.len();
         let mut data = self.data.borrow_mut();
-        if !self.clean_offset() {
+        if !self.clean_end_offset() {
             let num_bits_free_in_self = (8 - ((self.pos + self.len) % 8) % 8);
             let num_bits = if num_bits_free_in_self < other.len() {
                 num_bits_free_in_self
@@ -234,5 +240,35 @@ mod tests {
         assert_eq!(ba.len(), 2);
         assert_eq!(ba, BitArray::new(vec![0b1100_0000], Some(2)));
         assert_eq!(ba.eat(3), None);
+    }
+
+    #[test]
+    fn perf() {
+        let iterations = 1000 * 1000;
+        let mut ba = BitArray::new(vec![0xA9], None);
+        for i in 0..iterations {
+            ba.extend(&BitArray::new(vec![0x7B], None));
+        }
+        assert_eq!(ba.eat(8), Some(BitArray::new(vec![0xA9], None)));
+        for i in 0..iterations {
+            assert_eq!(ba.eat(8), Some(BitArray::new(vec![0x7B], None)));
+        }
+        assert_eq!(ba.eat(1), None);
+        assert_eq!(ba, BitArray::new(vec![], None));
+    }
+
+    #[test]
+    fn perf_bit_wise() {
+        let iterations = 1000 * 1000;
+        let mut ba = BitArray::new(vec![0xA9], Some(7));
+        for i in 0..iterations {
+            ba.extend(&BitArray::new(vec![0x7F], Some(2)));
+        }
+        assert_eq!(ba.eat(7), Some(BitArray::new(vec![0xA8], Some(7))));
+        for i in 0..iterations {
+            assert_eq!(ba.eat(2), Some(BitArray::new(vec![0b0100_0000], Some(2))));
+        }
+        assert_eq!(ba.eat(1), None);
+        assert_eq!(ba, BitArray::new(vec![], None));
     }
 }
