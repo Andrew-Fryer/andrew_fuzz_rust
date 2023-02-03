@@ -6,12 +6,12 @@ pub struct Set {
     base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases
     child_prototype: Rc<dyn DataModel>,
     children: Vec<Rc<dyn DataModel>>,
-    predicate: Rc<dyn Fn(&Context) -> bool>,
+    predicate: Rc<dyn Fn(Rc<Context>) -> bool>,
 }
 
 impl Set {
     // Should I just make children an empty vec?
-    pub fn new(child_prototype: Rc<dyn DataModel>, children: Vec<Rc<dyn DataModel>>, predicate: Rc<dyn Fn(&Context) -> bool>) -> Self {
+    pub fn new(child_prototype: Rc<dyn DataModel>, children: Vec<Rc<dyn DataModel>>, predicate: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Set".to_string())),
             child_prototype,
@@ -47,9 +47,12 @@ impl Breed for Set {
 impl Parser for Set {
     fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
         let mut new_children = Vec::new();
-        let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildList(&new_children));
-        while (self.predicate)(&child_ctx) {
-            if let Some(new_child) = self.child_prototype.parse(input, &Rc::new(child_ctx)) {
+        loop {
+            let child_ctx = Rc::new(Context::new(Rc::downgrade(ctx), Children::ChildList(&new_children)));
+            if (self.predicate)(child_ctx.clone()) {
+                break;
+            }
+            if let Some(new_child) = self.child_prototype.parse(input, &child_ctx) {
                 new_children.push(Rc::from(new_child));
             } else {
                 return None;

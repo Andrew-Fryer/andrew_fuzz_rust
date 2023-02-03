@@ -1,3 +1,5 @@
+use std::rc::{Weak, Rc};
+
 use crate::core::{bit_array::BitArray, Context, Children};
 
 mod core;
@@ -7,10 +9,8 @@ mod dns;
 fn main() {
     let mut grammar = dns::dns();
     let mut input = BitArray::from_file("./input_data".to_string()).unwrap();
-    let ctx = Context {
-        children: Children::Zilch,
-    };
-    let ast = grammar.parse(&mut input, &ctx).unwrap();
+    let ctx = Context::new(Weak::new(), Children::Zilch);
+    let ast = grammar.parse(&mut input, &Rc::new(ctx)).unwrap();
     let fuzz = ast.fuzz();
     let mut fvs = Vec::new();
     for f in fuzz {

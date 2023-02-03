@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet}, rc::Rc, borrow::Borrow};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, Children};
 
 pub struct Union {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
@@ -27,8 +27,8 @@ impl Union {
 impl DataModel for Union {}
 
 impl Contextual for Union {
-    fn child(&self) -> Rc<dyn Contextual> {
-        self.child
+    fn child(&self) -> Rc<dyn DataModel> {
+        self.child.clone()
     }
 }
 
@@ -49,12 +49,12 @@ impl Breed for Union {
 }
 
 impl Parser for Union {
-    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
         let mut successful_children = Vec::new();
         for c in &*self.potential_children {
             let mut input_for_child = input.clone();
-            let child_ctx = Context::new(); // todo: do this properly
-            if let Some(new_child) = c.parse(&mut input_for_child, ctx) {
+            let child_ctx = Context::new(Rc::downgrade(ctx), Children::Zilch);
+            if let Some(new_child) = c.parse(&mut input_for_child, &Rc::new(child_ctx)) {
                 successful_children.push(new_child);
             }
         }

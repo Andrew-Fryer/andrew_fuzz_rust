@@ -25,14 +25,8 @@ impl Sequence {
 impl DataModel for Sequence {}
 
 impl Contextual for Sequence {
-    fn map(&self) -> &HashMap<String, Rc<dyn Contextual>> {
-        let mut result = HashMap::new();
-        for (k, v) in &self.children {
-            result.insert(k, v as &Rc<dyn Contextual>);
-        }
-        result
-        // let children_map: HashMap<String, Rc<dyn Contextual>> = self.children as HashMap<String, Rc<dyn Contextual>>;
-        // &children_map
+    fn map(&self) -> &HashMap<String, Rc<dyn DataModel>> {
+        &&self.children
     }
 }
 
