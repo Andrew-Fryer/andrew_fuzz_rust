@@ -1,6 +1,6 @@
 use std::rc::{Weak, Rc};
 
-use crate::core::{bit_array::BitArray, Context, Children};
+use crate::core::{bit_array::BitArray, context::Context, context::Children};
 
 mod core;
 mod library;
