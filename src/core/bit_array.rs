@@ -1,5 +1,8 @@
 use std::{rc::Rc, cell::RefCell, ops::{AddAssign, Add}, cmp::PartialEq, fmt::Debug};
 
+// Should I switch to bitvec?
+// https://docs.rs/bitvec/latest/bitvec/
+
 // I have cool ideas about how to optimize this!
 // we could make it an enum that could be normal or could be a Vec<Box<BitArray>> which is sort of lazy...
 // pub enum BitArray<'a> {

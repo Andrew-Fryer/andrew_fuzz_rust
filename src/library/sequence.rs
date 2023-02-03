@@ -1,6 +1,6 @@
-use std::{collections::{HashMap, HashSet}, rc::Rc};
+use std::{collections::{HashMap}, rc::{Rc, Weak}};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, Children};
 
 pub struct Sequence {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
@@ -24,6 +24,12 @@ impl Sequence {
 
 impl DataModel for Sequence {}
 
+impl Contextual for Sequence {
+    fn get(&self, s: &String) {
+        self.children[s]
+    }
+}
+
 impl Cloneable for Sequence {
     fn clone(&self) -> Box<dyn DataModel> {
         Box::new(Self{
@@ -43,7 +49,7 @@ impl Parser for Sequence {
     fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>> {
         let mut new_children = HashMap::new();
         for (child_name, c) in &self.children {
-            let child_ctx = Context::new(); // todo: do this properly
+            let child_ctx = Context::new(Weak::from(ctx), Children::ChildMap(&new_children));
             if let Some(new_child) = c.parse(input, ctx) {
                 new_children.insert(child_name.to_string(), Rc::from(new_child));
             } else {

@@ -1,6 +1,6 @@
-use std::{collections::HashSet, rc::Rc};
+use std::{rc::Rc};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, Named, DataModelBase};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase};
 
 pub struct Set {
     base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases

@@ -6,7 +6,7 @@ use bit_array::BitArray;
 pub mod feature_vector;
 use feature_vector::FeatureVector;
 
-pub trait DataModel: Breed + Cloneable + Parser + Ast + Fuzzer + Named + Vectorizer + Serializer {}
+pub trait DataModel: Breed + Cloneable + Contextual + Parser + Ast + Fuzzer + Named + Vectorizer + Serializer {}
 
 pub struct DataModelBase {
     name: String,
@@ -29,6 +29,33 @@ pub trait Cloneable {
 
 pub trait Breed {
     fn breed(&self, other: Box<dyn DataModel>) -> Box<dyn DataModel>;
+}
+
+pub trait Contextual {
+    fn parent(&self) -> Box<dyn Contextual> {
+        panic!()
+    }
+    fn child(&self) -> Box<dyn Contextual> {
+        panic!()
+    }
+    // fn children(&self) -> Children {
+    //     panic!()
+    // }
+    fn nth(&self, i: i32) -> Box<dyn Contextual> {
+        panic!()
+    }
+    fn get(&self, s: &String) -> Box<dyn Contextual> {
+        panic!()
+    }
+    fn data(&self) -> &BitArray {
+        panic!()
+    }
+    fn int(&self) -> i32 {
+        panic!()
+    }
+    fn str(&self) -> &String {
+        panic!()
+    }
 }
 
 pub trait Parser {
@@ -80,7 +107,7 @@ pub trait Serializer {
 
 // pub struct Input {}
 pub struct Context {
-    parent: Option<Weak<Context>>,
+    parent: Weak<Context>,
     children: Children,
 }
 pub enum Children {
@@ -90,7 +117,7 @@ pub enum Children {
     ChildMap(HashMap<String, Rc<dyn DataModel>>),
 }
 impl Context {
-    pub fn new(parent: Option<Weak<Context>>, children: Children) -> Self {
+    pub fn new(parent: Weak<Context>, children: Children) -> Self {
         Self {
             parent,
             children,
