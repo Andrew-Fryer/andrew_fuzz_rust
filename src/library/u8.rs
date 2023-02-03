@@ -23,6 +23,9 @@ impl U8 {
         }
         
     }
+    pub fn value(&self) -> u8 {
+        self.data.peek(8)
+    }
 }
 
 impl DataModel for U8 {}

@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, rc::Rc};
+use std::{collections::{HashMap, HashSet}, rc::{Rc, Weak}, slice::SliceIndex, ops::Index};
 use std::fmt::Write;
 
 pub mod bit_array;
@@ -80,19 +80,52 @@ pub trait Serializer {
 
 // pub struct Input {}
 pub struct Context {
-    // parent: Option<dyn DataModel>,
-    pub children: Children,
+    parent: Option<Weak<Context>>,
+    children: Children,
 }
 pub enum Children {
     Zilch,
     Child(Box<dyn DataModel>),
-    ChildList(Vec<Box<dyn DataModel>>),
-    ChildMap(HashMap<String, Box<dyn DataModel>>),
+    ChildList(Vec<Rc<dyn DataModel>>),
+    ChildMap(HashMap<String, Rc<dyn DataModel>>),
 }
 impl Context {
-    pub fn new() -> Self {
+    pub fn new(parent: Option<Weak<Context>>, children: Children) -> Self {
         Self {
-            children: Children::Zilch,
+            parent,
+            children,
+        }
+    }
+    pub fn parent(&self) -> Weak<Context> {
+        self.parent.unwrap()
+    }
+    pub fn child(&self) -> Rc<dyn DataModel> {
+        if let Children::Child(child) = self.children {
+            Rc::from(child)
+        } else {
+            panic!()
+        }
+    }
+}
+impl Index<usize> for Context {
+    type Output = Rc<dyn DataModel>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        if let Children::ChildList(children_vec) = self.children {
+            &children_vec[index]
+        } else {
+            panic!()
+        }
+    }
+}
+impl Index<&String> for Context {
+    type Output = Rc<dyn DataModel>;
+
+    fn index(&self, index: &String) -> &Self::Output {
+        if let Children::ChildMap(children_map) = self.children {
+            &children_map[index]
+        } else {
+            panic!()
         }
     }
 }
