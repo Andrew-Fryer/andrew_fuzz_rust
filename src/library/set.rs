@@ -1,6 +1,6 @@
-use std::{rc::Rc};
+use std::{rc::{Rc, Weak}};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase, Contextual, Children};
 
 pub struct Set {
     base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases
@@ -23,6 +23,10 @@ impl Set {
 
 impl DataModel for Set {}
 
+impl Contextual for Set {
+
+}
+
 impl Cloneable for Set {
     fn clone(&self) -> Box<dyn DataModel> {
         Box::new(Self {
@@ -41,11 +45,11 @@ impl Breed for Set {
 }
 
 impl Parser for Set {
-    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>>{
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
         let mut new_children = Vec::new();
-        let child_ctx = Context::new();
+        let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildList(&new_children));
         while (self.predicate)(&child_ctx) {
-            if let Some(new_child) = self.child_prototype.parse(input, &child_ctx) {
+            if let Some(new_child) = self.child_prototype.parse(input, &Rc::new(child_ctx)) {
                 new_children.push(Rc::from(new_child));
             } else {
                 return None;

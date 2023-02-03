@@ -32,19 +32,16 @@ pub trait Breed {
 }
 
 pub trait Contextual {
-    fn parent(&self) -> Box<dyn Contextual> {
+    fn parent(&self) -> Rc<dyn Contextual> {
         panic!()
     }
-    fn child(&self) -> Box<dyn Contextual> {
+    fn child(&self) -> Rc<dyn Contextual> {
         panic!()
     }
-    // fn children(&self) -> Children {
-    //     panic!()
-    // }
-    fn nth(&self, i: i32) -> Box<dyn Contextual> {
+    fn vec(&self) -> &Vec<Rc<dyn Contextual>> {
         panic!()
     }
-    fn get(&self, s: &String) -> Box<dyn Contextual> {
+    fn map(&self) -> &HashMap<String, Rc<dyn Contextual>> {
         panic!()
     }
     fn data(&self) -> &BitArray {
@@ -59,7 +56,7 @@ pub trait Contextual {
 }
 
 pub trait Parser {
-    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>>;
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Option<Box<dyn DataModel>>;
 }
 pub trait Ast: Named {
     fn debug(&self) -> String {
@@ -106,25 +103,25 @@ pub trait Serializer {
 }
 
 // pub struct Input {}
-pub struct Context {
-    parent: Weak<Context>,
-    children: Children,
+pub struct Context<'a> {
+    parent: Weak<Context<'a>>,
+    children: Children<'a>,
 }
-pub enum Children {
+pub enum Children<'a> {
     Zilch,
     Child(Box<dyn DataModel>),
-    ChildList(Vec<Rc<dyn DataModel>>),
-    ChildMap(HashMap<String, Rc<dyn DataModel>>),
+    ChildList(&'a Vec<Rc<dyn DataModel>>),
+    ChildMap(&'a HashMap<String, Rc<dyn DataModel>>),
 }
-impl Context {
+impl Context<'_> {
     pub fn new(parent: Weak<Context>, children: Children) -> Self {
         Self {
             parent,
             children,
         }
     }
-    pub fn parent(&self) -> Weak<Context> {
-        self.parent.unwrap()
+    pub fn parent(&self) -> Rc<Context> {
+        self.parent.upgrade().unwrap()
     }
     pub fn child(&self) -> Rc<dyn DataModel> {
         if let Children::Child(child) = self.children {
@@ -134,25 +131,25 @@ impl Context {
         }
     }
 }
-impl Index<usize> for Context {
-    type Output = Rc<dyn DataModel>;
+// impl Index<usize> for Context {
+//     type Output = Rc<dyn DataModel>;
 
-    fn index(&self, index: usize) -> &Self::Output {
-        if let Children::ChildList(children_vec) = self.children {
-            &children_vec[index]
-        } else {
-            panic!()
-        }
-    }
-}
-impl Index<&String> for Context {
-    type Output = Rc<dyn DataModel>;
+//     fn index(&self, index: usize) -> &Self::Output {
+//         if let Children::ChildList(children_vec) = self.children {
+//             &children_vec[index]
+//         } else {
+//             panic!()
+//         }
+//     }
+// }
+// impl Index<&String> for Context {
+//     type Output = Rc<dyn DataModel>;
 
-    fn index(&self, index: &String) -> &Self::Output {
-        if let Children::ChildMap(children_map) = self.children {
-            &children_map[index]
-        } else {
-            panic!()
-        }
-    }
-}
+//     fn index(&self, index: &String) -> &Self::Output {
+//         if let Children::ChildMap(children_map) = self.children {
+//             &children_map[index]
+//         } else {
+//             panic!()
+//         }
+//     }
+// }

@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet}, rc::Rc, borrow::Borrow};
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual};
 
 pub struct Union {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
@@ -25,6 +25,12 @@ impl Union {
 }
 
 impl DataModel for Union {}
+
+impl Contextual for Union {
+    fn child(&self) -> Rc<dyn Contextual> {
+        self.child
+    }
+}
 
 impl Cloneable for Union {
     fn clone(&self) -> Box<dyn DataModel> {

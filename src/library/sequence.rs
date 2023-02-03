@@ -25,8 +25,14 @@ impl Sequence {
 impl DataModel for Sequence {}
 
 impl Contextual for Sequence {
-    fn get(&self, s: &String) {
-        self.children[s]
+    fn map(&self) -> &HashMap<String, Rc<dyn Contextual>> {
+        let mut result = HashMap::new();
+        for (k, v) in &self.children {
+            result.insert(k, v as &Rc<dyn Contextual>);
+        }
+        result
+        // let children_map: HashMap<String, Rc<dyn Contextual>> = self.children as HashMap<String, Rc<dyn Contextual>>;
+        // &children_map
     }
 }
 
@@ -46,10 +52,10 @@ impl Breed for Sequence {
 }
 
 impl Parser for Sequence {
-    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Option<Box<dyn DataModel>> {
         let mut new_children = HashMap::new();
         for (child_name, c) in &self.children {
-            let child_ctx = Context::new(Weak::from(ctx), Children::ChildMap(&new_children));
+            let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildMap(&new_children));
             if let Some(new_child) = c.parse(input, ctx) {
                 new_children.insert(child_name.to_string(), Rc::from(new_child));
             } else {

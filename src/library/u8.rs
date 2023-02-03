@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::fmt::Write;
 use std::rc::Rc;
 
-use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase};
+use crate::core::{DataModel, Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase, Contextual};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
 
@@ -30,6 +30,12 @@ impl U8 {
 
 impl DataModel for U8 {}
 
+impl Contextual for U8 {
+    fn int(&self) -> i32 {
+        self.data.peek(8) as i32
+    }
+}
+
 impl Cloneable for U8 {
     fn clone(&self) -> Box<dyn DataModel> {
         Box::new(Self {
@@ -46,7 +52,7 @@ impl Breed for U8 {
 }
 
 impl Parser for U8 {
-    fn parse(&self, input: &mut BitArray, ctx: &Context) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
         if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             let data_model = Self {
                 base: self.base.clone(),
