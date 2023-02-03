@@ -21,24 +21,24 @@ impl <'a> Context<'a> {
             children,
         }
     }
-    fn parent(&self) -> Rc<Context> {
+    pub fn parent(&self) -> Rc<Context> {
         self.parent.upgrade().unwrap().clone()
     }
-    fn child(&self) -> Rc<dyn DataModel> {
+    pub fn child(&self) -> Rc<dyn DataModel> {
         if let Children::Child(child) = &self.children {
             child.clone()
         } else {
             panic!()
         }
     }
-    fn vec(&self) -> &Vec<Rc<dyn DataModel>> {
+    pub fn vec(&self) -> &Vec<Rc<dyn DataModel>> {
         if let Children::ChildList(child_list) = &self.children {
             *child_list
         } else {
             panic!()
         }
     }
-    fn map(&self) -> &HashMap<String, Rc<dyn DataModel>> {
+    pub fn map(&self) -> &HashMap<String, Rc<dyn DataModel>> {
         if let Children::ChildMap(child_map) = &self.children {
             *child_map
         } else {

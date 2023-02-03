@@ -1,5 +1,20 @@
-use crate::{library::{set::Set, sequence::Sequence, u8::U8}, core::DataModel};
+use std::{collections::HashMap, rc::Rc};
+
+use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button}, core::DataModel};
 
 pub fn dns() -> Box<dyn DataModel> {
-    Box::new(U8::new())
+    let resource_record = todo!();
+    Box::new(Sequence::new(HashMap::from([
+        ("transactionId", U16),
+        ("flags", U16),
+        ("numQuestion", U16),
+        ("numAnswer", U16),
+        ("numAuthority", U16),
+        ("numAdditional", U16),
+        ("question", Set::new(resource_record, Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()["numQuestion"].int()))),
+        ("answer", Set::new(resource_record, Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()["numAnswer"].int()))),
+        ("authority", Set::new(resource_record, Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()["numAuthority"].int()))),
+        ("additional", Set::new(resource_record, Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()["numAdditional"].int()))),
+        ("end", Button),
+    ])))
 }
