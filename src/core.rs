@@ -31,11 +31,8 @@ pub trait Breed {
     fn breed(&self, other: Box<dyn DataModel>) -> Box<dyn DataModel>;
 }
 
-// todo: Contextual shouldn't have parent and Context shouldn't have data, int, or str
+// This allows the grammar to look around the nodes that have already been parsed.
 pub trait Contextual {
-    fn parent(&self) -> Rc<dyn Contextual> {
-        panic!()
-    }
     fn child(&self) -> Rc<dyn DataModel> {
         panic!()
     }
@@ -120,17 +117,26 @@ impl <'a> Context<'a> {
             children,
         }
     }
-}
-impl Contextual for Context<'_> {
-    fn parent(&self) -> Rc<dyn Contextual> {
-        // todo!()
-        let result = self.parent.upgrade().unwrap().clone();
-        Rc::new(Context::new(Weak::new(), Children::Zilch));
-        result
+    fn parent(&self) -> Rc<Context> {
+        self.parent.upgrade().unwrap().clone()
     }
     fn child(&self) -> Rc<dyn DataModel> {
         if let Children::Child(child) = &self.children {
             child.clone()
+        } else {
+            panic!()
+        }
+    }
+    fn vec(&self) -> &Vec<Rc<dyn DataModel>> {
+        if let Children::ChildList(child_list) = &self.children {
+            *child_list
+        } else {
+            panic!()
+        }
+    }
+    fn map(&self) -> &HashMap<String, Rc<dyn DataModel>> {
+        if let Children::ChildMap(child_map) = &self.children {
+            *child_map
         } else {
             panic!()
         }
