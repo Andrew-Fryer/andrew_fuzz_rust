@@ -6,89 +6,70 @@ use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, A
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
 
-pub struct U8 {
+pub struct Button {
     base: Rc<DataModelBase>,
-    // data: u8,
-    data: BitArray,
 }
 
-impl U8 {
+impl Button {
     pub fn new() -> Self {
-        Self::from_u8(0x00)
-    }
-    pub fn from_u8(data: u8) -> Self {
         Self {
-            base: Rc::new(DataModelBase::new("U8".to_string())),
-            data: BitArray::new(vec![data], None),
+            base: Rc::new(DataModelBase::new("Button".to_string())),
         }
-        
-    }
-    pub fn value(&self) -> u8 {
-        self.data.peek(8)
     }
 }
 
-impl DataModel for U8 {}
+impl DataModel for Button {}
 
-impl Contextual for U8 {
-    fn int(&self) -> i32 {
-        self.data.peek(8) as i32
-    }
-}
+impl Contextual for Button {}
 
-impl Cloneable for U8 {
+impl Cloneable for Button {
     fn clone(&self) -> Box<dyn DataModel> {
         Box::new(Self {
             base: self.base.clone(),
-            data: self.data.clone(),
         })
     }
 }
 
-impl Breed for U8 {
+impl Breed for Button {
     fn breed(&self, other: Box<dyn DataModel>) -> Box<dyn DataModel> {
-        todo!();
+        self.clone()
     }
 }
 
-impl Parser for U8 {
+impl Parser for Button {
     fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
-        if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
-            let data_model = Self {
-                base: self.base.clone(),
-                data,
-            };
-            Some(Box::new(data_model))
+        if let None = input.eat(1) {
+            Some(self.clone())
         } else {
             None
         }
     }
 }
 
-impl Ast for U8 {
+impl Ast for Button {
     fn debug(&self) -> String {
         let mut result = String::new();
-        write!(result, "{:X}", self.data.peek(8));
+        write!(result, "Button");
         result
     }
 }
 
-impl Fuzzer for U8 {
+impl Fuzzer for Button {
     fn fuzz(&self) -> Vec<Rc<dyn DataModel>> {
-        vec![Rc::new(U8::from_u8(0xFF)), Rc::new(U8::from_u8(0xAA))]
+        Vec::new()
     }
 }
 
-impl Named for U8 {
+impl Named for Button {
     fn name(&self) -> &String {
         self.base.name()
     }
 }
 
-impl Vectorizer for U8 {}
+impl Vectorizer for Button {}
 
-impl Serializer for U8 {
+impl Serializer for Button {
     fn do_serialization(&self, ba: &mut BitArray) {
-        ba.extend(&self.data);
+        // don't write out anything
     }
 }

@@ -6,37 +6,36 @@ use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, A
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
 
-pub struct U8 {
+pub struct U16 {
     base: Rc<DataModelBase>,
-    // data: u8,
     data: BitArray,
 }
 
-impl U8 {
+impl U16 {
     pub fn new() -> Self {
-        Self::from_u8(0x00)
+        Self::from_u16(0x00)
     }
-    pub fn from_u8(data: u8) -> Self {
+    pub fn from_u16(data: u16) -> Self {
+        let b0 = (data >> 8) as u8;
+        let b1 = (data & 0x00FF) as u8;
         Self {
-            base: Rc::new(DataModelBase::new("U8".to_string())),
-            data: BitArray::new(vec![data], None),
+            base: Rc::new(DataModelBase::new("U16".to_string())),
+            data: BitArray::new(vec![b0, b1], None),
         }
         
     }
-    pub fn value(&self) -> u8 {
-        self.data.peek(8)
-    }
 }
 
-impl DataModel for U8 {}
+impl DataModel for U16 {}
 
-impl Contextual for U8 {
+impl Contextual for U16 {
     fn int(&self) -> i32 {
-        self.data.peek(8) as i32
+        let mut data = self.data.clone();
+        (data.eat(8).unwrap().peek(8) << 8) as i32 | data.eat(8).unwrap().peek(8) as i32
     }
 }
 
-impl Cloneable for U8 {
+impl Cloneable for U16 {
     fn clone(&self) -> Box<dyn DataModel> {
         Box::new(Self {
             base: self.base.clone(),
@@ -45,15 +44,15 @@ impl Cloneable for U8 {
     }
 }
 
-impl Breed for U8 {
+impl Breed for U16 {
     fn breed(&self, other: Box<dyn DataModel>) -> Box<dyn DataModel> {
         todo!();
     }
 }
 
-impl Parser for U8 {
+impl Parser for U16 {
     fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
-        if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
+        if let Some(data) = input.eat(16) { // crap, I think I need `eat` to take &self instead of &mut self
             let data_model = Self {
                 base: self.base.clone(),
                 data,
@@ -65,29 +64,29 @@ impl Parser for U8 {
     }
 }
 
-impl Ast for U8 {
+impl Ast for U16 {
     fn debug(&self) -> String {
         let mut result = String::new();
-        write!(result, "{:X}", self.data.peek(8));
+        write!(result, "{:X}", self.int());
         result
     }
 }
 
-impl Fuzzer for U8 {
+impl Fuzzer for U16 {
     fn fuzz(&self) -> Vec<Rc<dyn DataModel>> {
-        vec![Rc::new(U8::from_u8(0xFF)), Rc::new(U8::from_u8(0xAA))]
+        vec![Rc::new(U16::from_u16(0xFFFF)), Rc::new(U16::from_u16(0xAAAA))]
     }
 }
 
-impl Named for U8 {
+impl Named for U16 {
     fn name(&self) -> &String {
         self.base.name()
     }
 }
 
-impl Vectorizer for U8 {}
+impl Vectorizer for U16 {}
 
-impl Serializer for U8 {
+impl Serializer for U16 {
     fn do_serialization(&self, ba: &mut BitArray) {
         ba.extend(&self.data);
     }

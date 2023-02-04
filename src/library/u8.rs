@@ -23,9 +23,6 @@ impl U8 {
         }
         
     }
-    pub fn value(&self) -> u8 {
-        self.data.peek(8)
-    }
 }
 
 impl DataModel for U8 {}
@@ -68,7 +65,7 @@ impl Parser for U8 {
 impl Ast for U8 {
     fn debug(&self) -> String {
         let mut result = String::new();
-        write!(result, "{:X}", self.data.peek(8));
+        write!(result, "{:X}", self.int());
         result
     }
 }
