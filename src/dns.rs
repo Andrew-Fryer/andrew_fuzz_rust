@@ -7,11 +7,11 @@ pub fn dns() -> Box<dyn DataModel> {
     let resource_record = todo!();
     let result = Box::new(Sequence::new(HashMap::from([
         ("transactionId".to_string(), u16.clone()),
-        // ("flags".to_string(), u16.clone()),
-        // ("numQuestion".to_string(), u16.clone()),
-        // ("numAnswer".to_string(), u16.clone()),
-        // ("numAuthority".to_string(), u16.clone()),
-        // ("numAdditional".to_string(), u16.clone()),
+        ("flags".to_string(), u16.clone()),
+        ("numQuestion".to_string(), u16.clone()),
+        ("numAnswer".to_string(), u16.clone()),
+        ("numAuthority".to_string(), u16.clone()),
+        ("numAdditional".to_string(), u16.clone()),
         // ("question".to_string(), Rc::new(Set::new(resource_record, Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()["numQuestion".to_string()].int())))),
         // ("answer".to_string(), Rc::new(Set::new(resource_record, Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()["numAnswer".to_string()].int())))),
         // ("authority".to_string(), Rc::new(Set::new(resource_record, Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()["numAuthority".to_string()].int())))),
