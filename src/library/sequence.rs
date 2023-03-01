@@ -50,7 +50,7 @@ impl Parser for Sequence {
         let mut new_children = HashMap::new();
         for (child_name, c) in &self.children {
             let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildMap(&new_children));
-            if let Some(new_child) = c.parse(input, ctx) {
+            if let Some(new_child) = c.parse(input, &Rc::new(child_ctx)) {
                 new_children.insert(child_name.to_string(), Rc::from(new_child));
             } else {
                 return None;

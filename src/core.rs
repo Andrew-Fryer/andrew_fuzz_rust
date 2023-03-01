@@ -66,6 +66,7 @@ pub trait Ast: Named {
     }
 }
 pub trait Fuzzer {
+    // todo: I think this should take a context object so that we can do fix ups (and fuzzing mutliple dependent data peices)!
     fn fuzz(&self) -> Vec<Rc<dyn DataModel>>; // todo: should this return an Iter instead for performance reasons?
 }
 

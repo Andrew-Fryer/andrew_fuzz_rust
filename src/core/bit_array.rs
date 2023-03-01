@@ -146,7 +146,7 @@ impl BitArray {
         let other_len = other.len();
         let mut data = self.data.borrow_mut();
         if !self.clean_end_offset() {
-            let num_bits_free_in_self = (8 - ((self.pos + self.len) % 8) % 8);
+            let num_bits_free_in_self = 8 - ((self.pos + self.len) % 8) % 8;
             let num_bits = if num_bits_free_in_self < other.len() {
                 num_bits_free_in_self
             } else {

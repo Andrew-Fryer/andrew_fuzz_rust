@@ -31,7 +31,7 @@ impl DataModel for U16 {}
 impl Contextual for U16 {
     fn int(&self) -> i32 {
         let mut data = self.data.clone();
-        (data.eat(8).unwrap().peek(8) << 8) as i32 | data.eat(8).unwrap().peek(8) as i32
+        ((data.eat(8).unwrap().peek(8) as i32) << 8) | data.eat(8).unwrap().peek(8) as i32
     }
 }
 
