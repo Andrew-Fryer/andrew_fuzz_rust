@@ -64,6 +64,9 @@ impl Named for Button {
     fn name(&self) -> &String {
         self.base.name()
     }
+    fn set_name(&mut self, name: &str) {
+        self.base = Rc::new(DataModelBase::new(name.to_string()));
+    }
 }
 
 impl Vectorizer for Button {}

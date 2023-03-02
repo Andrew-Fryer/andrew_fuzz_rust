@@ -50,6 +50,7 @@ impl Breed for Union {
 
 impl Parser for Union {
     fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
+        // crap, how do I mutate `input` correctly???? TODO TODO
         let mut successful_children = Vec::new();
         for c in &*self.potential_children {
             let mut input_for_child = input.clone();
@@ -99,6 +100,9 @@ impl Fuzzer for Union {
 impl Named for Union {
     fn name(&self) -> &String {
         self.base.name()
+    }
+    fn set_name(&mut self, name: &str) {
+        self.base = Rc::new(DataModelBase::new(name.to_string()));
     }
 }
 

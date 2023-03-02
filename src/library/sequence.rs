@@ -1,15 +1,16 @@
 use std::{collections::{HashMap}, rc::{Rc, Weak}};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children};
+use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, bolts::ChildMap};
 
 pub struct Sequence {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
     // bnt: BranchingNonTerminal,
-    children: HashMap<String, Rc<dyn DataModel>>,
+    children: ChildMap,
+    // children: HashMap<String, Rc<dyn DataModel>>,
 }
 
 impl Sequence {
-    pub fn new(children: HashMap<String, Rc<dyn DataModel>>) -> Self {
+    pub fn new(children: ChildMap) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Sequence".to_string())),
             children,
@@ -17,15 +18,12 @@ impl Sequence {
     }
     // todo: this should probably be an interface or something...
     // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#
-    pub fn name(&self) -> &String {
-        self.base.name()
-    }
 }
 
 impl DataModel for Sequence {}
 
 impl Contextual for Sequence {
-    fn map(&self) -> &HashMap<String, Rc<dyn DataModel>> {
+    fn map(&self) -> &ChildMap {
         &&self.children
     }
 }
@@ -47,11 +45,11 @@ impl Breed for Sequence {
 
 impl Parser for Sequence {
     fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Option<Box<dyn DataModel>> {
-        let mut new_children = HashMap::new();
-        for (child_name, c) in &self.children {
+        let mut new_children = self.children.empty();
+        for c in self.children.vals() {
             let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildMap(&new_children));
             if let Some(new_child) = c.parse(input, &Rc::new(child_ctx)) {
-                new_children.insert(child_name.to_string(), Rc::from(new_child));
+                new_children.push(Rc::from(new_child));
             } else {
                 return None;
             }
@@ -72,10 +70,10 @@ impl Ast for Sequence {
 impl Fuzzer for Sequence {
     fn fuzz(&self) -> Vec<Rc<dyn DataModel>> {
         let mut result: Vec<Rc<dyn DataModel>> = Vec::new();
-        for (child_name, c) in &self.children {
+        for c in self.children.vals() {
             for mutated_child in c.fuzz() {
                 let mut mutated_children = self.children.clone(); // I believe Rc will make this shallow
-                mutated_children.insert(child_name.to_string(), Rc::from(mutated_child));
+                mutated_children.push(Rc::from(mutated_child));
                 result.push(Rc::new(Self {
                     base: self.base.clone(),
                     children: mutated_children,
@@ -90,13 +88,16 @@ impl Named for Sequence {
     fn name(&self) -> &String {
         self.base.name()
     }
+    fn set_name(&mut self, name: &str) {
+        self.base = Rc::new(DataModelBase::new(name.to_string()));
+    }
 }
 
 impl Vectorizer for Sequence {}
 
 impl Serializer for Sequence {
     fn do_serialization(&self, ba: &mut BitArray) {
-        for (child_name, c) in &self.children {
+        for c in self.children.vals() {
             c.do_serialization(ba);
         }
     }

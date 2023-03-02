@@ -1,6 +1,6 @@
-use std::{rc::{Weak, Rc}, collections::HashMap};
+use std::rc::{Weak, Rc};
 
-use super::DataModel;
+use super::{DataModel, bolts::ChildMap};
 
 
 
@@ -12,7 +12,7 @@ pub enum Children<'a> {
     Zilch,
     Child(Rc<dyn DataModel>),
     ChildList(&'a Vec<Rc<dyn DataModel>>),
-    ChildMap(&'a HashMap<String, Rc<dyn DataModel>>),
+    ChildMap(&'a ChildMap),
 }
 impl <'a> Context<'a> {
     pub fn new(parent: Weak<Context<'a>>, children: Children<'a>) -> Self {
@@ -38,7 +38,7 @@ impl <'a> Context<'a> {
             panic!()
         }
     }
-    pub fn map(&self) -> &HashMap<String, Rc<dyn DataModel>> {
+    pub fn map(&self) -> &ChildMap {
         if let Children::ChildMap(child_map) = &self.children {
             *child_map
         } else {

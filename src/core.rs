@@ -8,6 +8,9 @@ use feature_vector::FeatureVector;
 pub mod context;
 use context::Context;
 
+use self::bolts::ChildMap;
+pub mod bolts;
+
 pub trait DataModel: Breed + Cloneable + Contextual + Parser + Ast + Fuzzer + Named + Vectorizer + Serializer {}
 
 pub struct DataModelBase {
@@ -41,7 +44,7 @@ pub trait Contextual {
     fn vec(&self) -> &Vec<Rc<dyn DataModel>> {
         panic!()
     }
-    fn map(&self) -> &HashMap<String, Rc<dyn DataModel>> {
+    fn map(&self) -> &ChildMap {
         panic!()
     }
     fn data(&self) -> &BitArray {
@@ -72,6 +75,7 @@ pub trait Fuzzer {
 
 pub trait Named {
     fn name(&self) -> &String;
+    fn set_name(&mut self, name: &str);
 }
 
 pub trait Vectorizer: Named {

@@ -19,6 +19,9 @@ impl Set {
             predicate,
         }
     }
+    pub fn set_name(&mut self, name: &str) {
+        self.base = Rc::new(DataModelBase::new(name.to_string()));
+    }
 }
 
 impl DataModel for Set {}
@@ -96,6 +99,9 @@ impl Fuzzer for Set {
 impl Named for Set {
     fn name(&self) -> &String {
         self.base.name()
+    }
+    fn set_name(&mut self, name: &str) {
+        self.base = Rc::new(DataModelBase::new(name.to_string()));
     }
 }
 

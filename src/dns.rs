@@ -1,26 +1,29 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc, borrow::BorrowMut};
 
-use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::{DataModel, context::Context}};
+use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::{DataModel, context::Context, bolts::ChildMap}};
+use crate::core::Named;
 
 pub fn dns() -> Box<dyn DataModel> {
     let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
     let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
-    let uint32: Rc<dyn DataModel> = Rc::new(Sequence::new(HashMap::from([
-        ("b0".to_string(), uint8.clone()),
-        ("b1".to_string(), uint8.clone()),
-        ("b2".to_string(), uint8.clone()),
-        ("b3".to_string(), uint8.clone()),
+    let uint32: Rc<dyn DataModel> = Rc::new(Sequence::new(ChildMap::from([
+        ("b0", uint8.clone()),
+        ("b1", uint8.clone()),
+        ("b2", uint8.clone()),
+        ("b3", uint8.clone()),
     ])));
-    let label: Rc<dyn DataModel> = Rc::new(Union::new(Rc::new(vec![
-        Box::new(Sequence::new(HashMap::from([
-            ("length".to_string(), Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| ctx.child().int() >= 0xc0))) as Rc<dyn DataModel>),
-            ("letters".to_string(), Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"length".to_string()].int()))) as Rc<dyn DataModel>),
+    let mut label = Union::new(Rc::new(vec![
+        Box::new(Sequence::new(ChildMap::from([
+            ("length", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| ctx.child().int() < 0xc0))) as Rc<dyn DataModel>),
+            ("letters", Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"length".to_string()].child().int()))) as Rc<dyn DataModel>),
         ]))),
-        Box::new(Sequence::new(HashMap::from([
-            ("marker".to_string(), Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| ctx.child().int() >= 0xc0))) as Rc<dyn DataModel>),
-            ("ref".to_string(), uint8.clone()),
+        Box::new(Sequence::new(ChildMap::from([
+            ("marker", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| ctx.child().int() >= 0xc0))) as Rc<dyn DataModel>),
+            ("ref", uint8.clone()),
         ]))),
-    ]), uint8.clone()));
+    ]), uint8.clone());
+    label.set_name(&"label");
+    let label: Rc<dyn DataModel> = Rc::new(label);
     let domain_predicate: Rc<dyn Fn(Rc<Context>) -> bool> = Rc::new(|ctx| {
         let v = ctx.vec();
         let v_len = v.len();
@@ -28,32 +31,37 @@ pub fn dns() -> Box<dyn DataModel> {
             return false;
         }
         let last_element = v[v_len - 1].clone();
-        let last_element_len = last_element.map()[&"length".to_string()].int();
+        let last_element_len = last_element.child().map()[&"length".to_string()].child().int();
         last_element_len == 0 || last_element_len > 0xc0
     });
-    let domain: Rc<dyn DataModel> = Rc::new(Set::new(label.clone(), vec![label.clone()], domain_predicate));
-    let rr_a: Box<dyn DataModel> = Box::new(Sequence::new(HashMap::from([
-        ("name".to_string(), domain.clone()),
-        ("type".to_string(), uint16.clone()),
-        ("class".to_string(), uint16.clone()),
-        ("ttl".to_string(), uint32.clone()),
-        ("dataLength".to_string(), uint16.clone()),
-        ("data".to_string(), Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"dataLength".to_string()].int())))),
+    let mut domain = Set::new(label.clone(), vec![label.clone()], domain_predicate);
+    domain.set_name(&"domain");
+    let domain: Rc<dyn DataModel> = Rc::new(domain);
+    let rr_a: Box<dyn DataModel> = Box::new(Sequence::new(ChildMap::from([
+        ("name", domain.clone()),
+        ("type", uint16.clone()),
+        ("class", uint16.clone()),
+        ("ttl", uint32.clone()),
+        ("dataLength", uint16.clone()),
+        ("data", Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"dataLength".to_string()].int())))),
     ])));
     // let rr_aaaa = todo!();
-    let resource_record = Rc::new(Union::new(Rc::new(vec![rr_a.clone()]), Rc::from(rr_a))); //, rr_aaaa));
-    let result = Box::new(Sequence::new(HashMap::from([
-        ("transactionId".to_string(), uint16.clone()),
-        ("flags".to_string(), uint16.clone()),
-        ("numQuestion".to_string(), uint16.clone()),
-        ("numAnswer".to_string(), uint16.clone()),
-        ("numAuthority".to_string(), uint16.clone()),
-        ("numAdditional".to_string(), uint16.clone()),
-        ("question".to_string(), Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion".to_string()].int())))),
-        ("answer".to_string(), Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer".to_string()].int())))),
-        ("authority".to_string(), Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority".to_string()].int())))),
-        ("additional".to_string(), Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional".to_string()].int())))),
-        ("end".to_string(), Rc::new(Button::new())),
+    let mut resource_record = Union::new(Rc::new(vec![rr_a.clone()]), Rc::from(rr_a)); //, rr_aaaa));
+    resource_record.set_name(&"rr");
+    let resource_record = Rc::new(resource_record);
+    let mut result = Box::new(Sequence::new(ChildMap::from([
+        ("transactionId", uint16.clone()),
+        ("flags", uint16.clone()),
+        ("numQuestion", uint16.clone()),
+        ("numAnswer", uint16.clone()),
+        ("numAuthority", uint16.clone()),
+        ("numAdditional", uint16.clone()),
+        ("question", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int())))),
+        ("answer", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer".to_string()].int())))),
+        ("authority", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority".to_string()].int())))),
+        ("additional", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional".to_string()].int())))),
+        ("end", Rc::new(Button::new())),
     ])));
+    result.set_name(&"dns");
     result
 }
