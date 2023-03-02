@@ -1,3 +1,4 @@
+use core::num;
 use std::{rc::Rc, cell::RefCell, ops::{AddAssign, Add}, cmp::PartialEq, fmt::Debug};
 
 // Should I switch to bitvec?
@@ -131,7 +132,25 @@ impl BitArray {
     }
     pub fn advance(&mut self, num_bits: i32) {
         self.pos += num_bits;
+        self.len -= num_bits;
     }
+    pub fn matching_data(&self, data: Rc<RefCell<Vec<u8>>>) -> bool {
+        self.data == data
+    }
+    pub fn advance_to_match(&mut self, other: Self) {
+        assert!(other.matching_data(self.data.clone()));
+        let dist = other.pos() - self.pos();
+        assert!(dist >= 0);
+        self.advance(dist);
+    }
+    pub fn pos(&self) -> i32 {
+        self.pos
+    }
+    // // todo: am I sure this is safe to do?
+    // pub fn backtrack(&mut self, num_bits: i32) {
+    //     self.pos -= num_bits;
+    //     assert!(self.pos >= 0);
+    // }
     // todo: make this lazy
     pub fn extend(&mut self, other: &BitArray) {
         // first check if someone else has already extended the underlying data beneath us

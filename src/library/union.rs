@@ -50,13 +50,12 @@ impl Breed for Union {
 
 impl Parser for Union {
     fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
-        // crap, how do I mutate `input` correctly???? TODO TODO
         let mut successful_children = Vec::new();
         for c in &*self.potential_children {
             let mut input_for_child = input.clone();
             let child_ctx = Context::new(Rc::downgrade(ctx), Children::Zilch);
             if let Some(new_child) = c.parse(&mut input_for_child, &Rc::new(child_ctx)) {
-                successful_children.push(new_child);
+                successful_children.push((new_child, input_for_child));
             }
         }
         if successful_children.len() > 1 {
@@ -66,7 +65,9 @@ impl Parser for Union {
         while successful_children.len() > 1 {
             successful_children.pop();
         }
-        if let Some(child) = successful_children.pop() {
+        if let Some((child, input_from_child)) = successful_children.pop() {
+            // this is so that we mutate `input` correctly
+            input.advance_to_match(input_from_child);
             Some(Box::new(Self {
                 base: self.base.clone(),
                 potential_children: self.potential_children.clone(),
