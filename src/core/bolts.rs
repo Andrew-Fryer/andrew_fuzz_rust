@@ -31,6 +31,13 @@ impl ChildMap {
         }
         self.arr.push(child);
     }
+    pub fn get(&self, key: &str) -> Option<Rc<dyn DataModel>> {
+        if let Some(i) = self.k_to_i.get(key) {
+            self.arr.get(*i).map(|dm| dm.clone())
+        } else {
+            None
+        }
+    }
 }
 
 impl<const N: usize> From<[(&'static str, Rc<dyn DataModel>); N]> for ChildMap {

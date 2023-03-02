@@ -31,8 +31,12 @@ pub fn dns() -> Box<dyn DataModel> {
             return false;
         }
         let last_element = v[v_len - 1].clone();
-        let last_element_len = last_element.child().map()[&"length".to_string()].child().int();
-        last_element_len == 0 || last_element_len > 0xc0
+        if let Some(constraint_obj) = last_element.child().map().get(&"length".to_string()) {
+            let last_element_len = constraint_obj.child().int();
+            last_element_len == 0 || last_element_len > 0xc0
+        } else {
+            false // this is hacky, and happens when there is a (marker,ref) instead of a (length,letters)
+        }
     });
     let mut domain = Set::new(label.clone(), vec![label.clone()], domain_predicate);
     domain.set_name(&"domain");
