@@ -37,4 +37,14 @@ impl FeatureVector {
     pub fn features(&self) -> Iter<'_, String> {
         self.fs.iter()
     }
+    pub fn empty(&self) -> FeatureVector {
+        let mut d = HashMap::new();
+        for f in self.features() {
+            d.insert(f.to_string(), 0f64);
+        }
+        Self {
+            fs: self.features().map(|s| s.to_string()).collect(),
+            d,
+        }
+    }
 }

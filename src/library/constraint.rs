@@ -101,11 +101,11 @@ impl Named for Constraint {
 
 impl Vectorizer for Constraint {
     fn do_features(&self, features: &mut HashSet<String>) {
-        (self as &dyn Vectorizer).do_features(features);
+        features.insert(self.name().to_string());
         self.child.do_features(features);
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
-        (self as &dyn Vectorizer).do_vectorization(fv, depth);
+        fv.tally(self.name(), depth);
         self.child.do_vectorization(fv, depth);
     }
 }

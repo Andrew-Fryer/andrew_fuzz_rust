@@ -113,11 +113,13 @@ impl Named for Union {
 // TODO: don't have duplicate code between here and Constraint
 impl Vectorizer for Union {
     fn do_features(&self, features: &mut HashSet<String>) {
-        (self as &dyn Vectorizer).do_features(features);
-        self.child.do_features(features);
+        features.insert(self.name().to_string());
+        for c in self.potential_children.iter() {
+            c.do_features(features);
+        }
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
-        (self as &dyn Vectorizer).do_vectorization(fv, depth);
+        fv.tally(self.name(), depth);
         self.child.do_vectorization(fv, depth);
     }
 }

@@ -97,13 +97,13 @@ impl Named for Sequence {
 
 impl Vectorizer for Sequence {
     fn do_features(&self, features: &mut HashSet<String>) {
-        (self as &dyn Vectorizer).do_features(features);
+        features.insert(self.name().to_string());
         for c in self.children.vals() {
             c.do_features(features);
         }
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
-        (self as &dyn Vectorizer).do_vectorization(fv, depth);
+        fv.tally(self.name(), depth);
         for c in self.children.vals() {
             c.do_vectorization(fv, depth);
         }

@@ -109,13 +109,11 @@ impl Named for Set {
 // TODO: I could improve this with a Traverable trait or a Nonterminal trait or something
 impl Vectorizer for Set {
     fn do_features(&self, features: &mut HashSet<String>) {
-        (self as &dyn Vectorizer).do_features(features);
-        for c in &self.children {
-            c.do_features(features);
-        }
+        features.insert(self.name().to_string());
+        self.child_prototype.do_features(features);
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
-        (self as &dyn Vectorizer).do_vectorization(fv, depth);
+        fv.tally(self.name(), depth);
         for c in &self.children {
             c.do_vectorization(fv, depth);
         }
