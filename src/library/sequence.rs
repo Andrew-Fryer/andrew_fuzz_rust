@@ -49,8 +49,10 @@ impl Parser for Sequence {
         for c in self.children.vals() {
             let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildMap(&new_children));
             if let Some(new_child) = c.parse(input, &Rc::new(child_ctx)) {
+                println!("parsed child: {:?}", new_child.serialize());
                 new_children.push(Rc::from(new_child));
             } else {
+                println!("Failed to parse {:} at {:?}", self.name(), input);
                 return None;
             }
         }

@@ -56,6 +56,8 @@ impl Parser for Union {
             let child_ctx = Context::new(Rc::downgrade(ctx), Children::Zilch);
             if let Some(new_child) = c.parse(&mut input_for_child, &Rc::new(child_ctx)) {
                 successful_children.push((new_child, input_for_child));
+            } else {
+                println!("Recovering from failure inside Union");
             }
         }
         if successful_children.len() > 1 {
@@ -74,8 +76,7 @@ impl Parser for Union {
                 child: Rc::from(child),
             }))
         } else {
-            let input_str = format!("{:?}", input);
-            println!("{}", input_str);
+            println!("Failed to parse {:} at {:?}", self.name(), input);
             None
         }
     }

@@ -16,16 +16,31 @@ pub fn dns() -> Box<dyn DataModel> {
         Box::new(Sequence::new(ChildMap::from([
             ("length", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| {
                 let len_field = ctx.child().int();
-                len_field < 0xc0
+                let result = len_field < 0xc0;
+                if !result {
+                    println!("Failed to parse label length");
+                }
+                result
             }))) as Rc<dyn DataModel>),
             ("letters", Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
                 let len = ctx.vec().len() as i32;
                 let len_field = ctx.parent().map()[&"length".to_string()].child().int();
-                len == len_field
+                let result = len == len_field;
+                if result {
+                    println!("Parsed all {:} letters", len);
+                }
+                result
             }))) as Rc<dyn DataModel>),
         ]))),
         Box::new(Sequence::new(ChildMap::from([
-            ("marker", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| ctx.child().int() >= 0xc0))) as Rc<dyn DataModel>),
+            ("marker", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| {
+                let marker_value = ctx.child().int();
+                let result = marker_value >= 0xc0;
+                if !result {
+                    println!("Failed to parse marker");
+                }
+                result
+            }))) as Rc<dyn DataModel>),
             ("ref", uint8.clone()),
         ]))),
     ]), uint8.clone());
@@ -48,6 +63,13 @@ pub fn dns() -> Box<dyn DataModel> {
     let mut domain = Set::new(label.clone(), vec![label.clone()], domain_predicate);
     domain.set_name(&"domain");
     let domain: Rc<dyn DataModel> = Rc::new(domain);
+    let mut query = Sequence::new(ChildMap::from([
+        ("name", domain.clone()),
+        ("type", uint16.clone()),
+        ("class", uint16.clone()),
+    ]));
+    query.set_name(&"query");
+    let query = Rc::new(query);
     // TODO: add all resource types and make sure that makes my feature vectors longer!
     let mut resource_record = Sequence::new(ChildMap::from([
         ("name", domain.clone()),
@@ -70,7 +92,7 @@ pub fn dns() -> Box<dyn DataModel> {
         ("numAnswer", uint16.clone()),
         ("numAuthority", uint16.clone()),
         ("numAdditional", uint16.clone()),
-        ("question", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int())))),
+        ("question", Rc::new(Set::new(query.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int())))),
         ("answer", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer".to_string()].int())))),
         ("authority", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority".to_string()].int())))),
         ("additional", Rc::new(Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional".to_string()].int())))),

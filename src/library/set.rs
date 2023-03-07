@@ -58,6 +58,7 @@ impl Parser for Set {
             if let Some(new_child) = self.child_prototype.parse(input, &child_ctx) {
                 new_children.push(Rc::from(new_child));
             } else {
+                println!("Failed to parse {:} at {:?}", self.name(), input);
                 return None;
             }
         }
