@@ -38,6 +38,9 @@ impl ChildMap {
             None
         }
     }
+    pub fn set_ind(&mut self, i: usize, new_child: Rc<dyn DataModel>) {
+        self.arr[i] = new_child;
+    }
 }
 
 impl<const N: usize> From<[(&'static str, Rc<dyn DataModel>); N]> for ChildMap {

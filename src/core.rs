@@ -89,7 +89,7 @@ pub trait Vectorizer: Named {
         FeatureVector::new(features.into_iter().collect())
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
-        fv.tally("U8".to_string(), depth);
+        fv.tally(self.name(), depth);
     }
     // fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32);
     fn vectorize(&self) -> FeatureVector {

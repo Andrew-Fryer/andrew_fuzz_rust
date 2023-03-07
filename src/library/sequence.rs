@@ -72,10 +72,10 @@ impl Ast for Sequence {
 impl Fuzzer for Sequence {
     fn fuzz(&self) -> Vec<Rc<dyn DataModel>> {
         let mut result: Vec<Rc<dyn DataModel>> = Vec::new();
-        for c in self.children.vals() {
+        for (i, c) in self.children.vals().iter().enumerate() {
             for mutated_child in c.fuzz() {
                 let mut mutated_children = self.children.clone(); // I believe Rc will make this shallow
-                mutated_children.push(Rc::from(mutated_child));
+                mutated_children.set_ind(i, Rc::from(mutated_child));
                 result.push(Rc::new(Self {
                     base: self.base.clone(),
                     children: mutated_children,
@@ -94,8 +94,6 @@ impl Named for Sequence {
         self.base = Rc::new(DataModelBase::new(name.to_string()));
     }
 }
-
-impl Vectorizer for Sequence {}
 
 impl Serializer for Sequence {
     fn do_serialization(&self, ba: &mut BitArray) {

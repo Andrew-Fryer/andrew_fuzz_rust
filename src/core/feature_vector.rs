@@ -16,8 +16,8 @@ impl FeatureVector {
             d,
         }
     }
-    pub fn tally(&mut self, feature: String, depth: i32) {
-        *self.d.get_mut(&feature).unwrap() += std::f64::consts::E.powi(depth);
+    pub fn tally(&mut self, feature: &String, depth: i32) {
+        *self.d.get_mut(feature).unwrap() += std::f64::consts::E.powi(depth);
     }
     pub fn values(&self) -> Vec<f64> {
         let mut result = Vec::new();
