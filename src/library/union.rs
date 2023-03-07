@@ -1,7 +1,9 @@
 use std::{collections::{HashMap, HashSet}, rc::Rc, borrow::Borrow, fmt::format};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children};
+use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, ParseError};
 
+
+#[derive(Debug)]
 pub struct Union {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
     // bnt: BranchingNonTerminal,
@@ -49,15 +51,19 @@ impl Breed for Union {
 }
 
 impl Parser for Union {
-    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Result<Box<dyn DataModel>, ParseError> {
         let mut successful_children = Vec::new();
+        let mut failures = Vec::new();
         for c in &*self.potential_children {
             let mut input_for_child = input.clone();
             let child_ctx = Context::new(Rc::downgrade(ctx), Children::Zilch);
-            if let Some(new_child) = c.parse(&mut input_for_child, &Rc::new(child_ctx)) {
-                successful_children.push((new_child, input_for_child));
-            } else {
-                println!("Recovering from failure inside Union");
+            match c.parse(&mut input_for_child, &Rc::new(child_ctx)) {
+                Ok(new_child) => {
+                    successful_children.push((new_child, input_for_child));
+                }
+                Err(e) => {
+                    failures.push(e);
+                }
             }
         }
         if successful_children.len() > 1 {
@@ -70,14 +76,16 @@ impl Parser for Union {
         if let Some((child, input_from_child)) = successful_children.pop() {
             // this is so that we mutate `input` correctly
             input.advance_to_match(input_from_child);
-            Some(Box::new(Self {
+            Ok(Box::new(Self {
                 base: self.base.clone(),
                 potential_children: self.potential_children.clone(),
                 child: Rc::from(child),
             }))
         } else {
-            println!("Failed to parse {:} at {:?}", self.name(), input);
-            None
+            // println!("Failed to parse {:} at {:?}", self.name(), input);
+            // TODO: should ParseError also record the base name?
+            //     I think maybe Context should instead...
+            Err(ParseError::Children(failures))
         }
     }
 }

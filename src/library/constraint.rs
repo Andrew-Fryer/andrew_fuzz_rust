@@ -1,11 +1,14 @@
+use std::backtrace::Backtrace;
 use std::collections::HashSet;
-use std::fmt::Write;
+use std::fmt::{Write, Formatter};
 use std::rc::Rc;
 
+use crate::core::ParseError;
 use crate::core::context::Children;
 use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase, Contextual};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
+
 
 pub struct Constraint {
     base: Rc<DataModelBase>,
@@ -48,21 +51,18 @@ impl Breed for Constraint {
 }
 
 impl Parser for Constraint {
-    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
-        if let Some(parsed_child) = self.child.parse(input, ctx) {
-            let parsed_child: Rc<dyn DataModel> = Rc::from(parsed_child);
-            let child_ctx = Context::new(Rc::downgrade(ctx), Children::Child(parsed_child.clone()));
-            if (self.constraint_fn)(Rc::new(child_ctx)) {
-                Some(Box::new(Self {
-                    base: self.base.clone(),
-                    child: parsed_child,
-                    constraint_fn: self.constraint_fn.clone(),
-                }))
-            } else {
-                None
-            }
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Result<Box<dyn DataModel>, ParseError> {
+        let parsed_child = self.child.parse(input, ctx)?;
+        let parsed_child: Rc<dyn DataModel> = Rc::from(parsed_child);
+        let child_ctx = Rc::new(Context::new(Rc::downgrade(ctx), Children::Child(parsed_child.clone())));
+        if (self.constraint_fn)(child_ctx.clone()) {
+            Ok(Box::new(Self {
+                base: self.base.clone(),
+                child: parsed_child,
+                constraint_fn: self.constraint_fn.clone(),
+            }))
         } else {
-            None
+            Err(ParseError::Err(child_ctx.clone(), input.clone(), Backtrace::capture()))
         }
     }
 }
@@ -113,5 +113,12 @@ impl Vectorizer for Constraint {
 impl Serializer for Constraint {
     fn do_serialization(&self, ba: &mut BitArray) {
         self.child.do_serialization(ba);
+    }
+}
+
+impl std::fmt::Debug for Constraint {
+    fn fmt(&self, _: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        println!("Constraint");
+        Ok(())
     }
 }

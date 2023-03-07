@@ -1,5 +1,6 @@
-use std::{collections::{HashMap, HashSet}, rc::{Rc, Weak}, slice::SliceIndex, ops::Index};
+use std::{collections::{HashMap, HashSet}, rc::{Rc, Weak}, slice::SliceIndex, ops::Index, backtrace::Backtrace};
 use std::fmt::Write;
+use std::result::Result;
 
 pub mod bit_array;
 use bit_array::BitArray;
@@ -11,8 +12,10 @@ use context::Context;
 use self::bolts::ChildMap;
 pub mod bolts;
 
-pub trait DataModel: Breed + Cloneable + Contextual + Parser + Ast + Fuzzer + Named + Vectorizer + Serializer {}
+pub trait DataModel: Breed + Cloneable + Contextual + Parser + Ast + Fuzzer + Named + Vectorizer + Serializer + std::fmt::Debug {}
 
+
+#[derive(Debug)]
 pub struct DataModelBase {
     name: String,
 }
@@ -58,8 +61,13 @@ pub trait Contextual {
     }
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    Err(Rc<Context>, BitArray, Backtrace),
+    Children(Vec<ParseError>), // used when a Union fails to parse
+}
 pub trait Parser {
-    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Option<Box<dyn DataModel>>;
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Result<Box<dyn DataModel>, ParseError>;
 }
 pub trait Ast: Named {
     fn debug(&self) -> String {

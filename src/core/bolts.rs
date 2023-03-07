@@ -4,6 +4,7 @@ use std::{collections::HashMap, rc::Rc, process::Child, ops::Index};
 
 use super::DataModel;
 
+#[derive(Debug, Clone)]
 pub struct ChildMap {
     k_to_i: Rc<HashMap<&'static str, usize>>,
     arr: Vec<Rc<dyn DataModel>>,

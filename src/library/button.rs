@@ -1,11 +1,14 @@
+use std::backtrace::Backtrace;
 use std::collections::HashSet;
 use std::fmt::Write;
 use std::rc::Rc;
 
+use crate::core::ParseError;
 use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase, Contextual};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
 
+#[derive(Debug)]
 pub struct Button {
     base: Rc<DataModelBase>,
 }
@@ -37,11 +40,11 @@ impl Breed for Button {
 }
 
 impl Parser for Button {
-    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Result<Box<dyn DataModel>, ParseError> {
         if let None = input.eat(1) {
-            Some(self.clone())
+            Ok(self.clone())
         } else {
-            None
+            Err(ParseError::Err(ctx.clone(), input.clone(), Backtrace::capture()))
         }
     }
 }

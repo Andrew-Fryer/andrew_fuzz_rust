@@ -1,7 +1,8 @@
 use std::{collections::{HashMap, HashSet}, rc::{Rc, Weak}};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, bolts::ChildMap};
+use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, bolts::ChildMap, ParseError};
 
+#[derive(Debug)]
 pub struct Sequence {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
     // bnt: BranchingNonTerminal,
@@ -44,21 +45,18 @@ impl Breed for Sequence {
 }
 
 impl Parser for Sequence {
-    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Option<Box<dyn DataModel>> {
-        let mut new_children = self.children.empty();
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Result<Box<dyn DataModel>, ParseError> {
+        let mut new_children = Rc::new(self.children.empty());
         for c in self.children.vals() {
-            let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildMap(&new_children));
-            if let Some(new_child) = c.parse(input, &Rc::new(child_ctx)) {
-                println!("parsed child: {:?}", new_child.serialize());
-                new_children.push(Rc::from(new_child));
-            } else {
-                println!("Failed to parse {:} at {:?}", self.name(), input);
-                return None;
-            }
+            let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildMap(new_children.clone()));
+            let new_child = c.parse(input, &Rc::new(child_ctx))?;
+            println!("parsed child: {:?}", new_child.serialize());
+            Rc::make_mut(&mut new_children).push(Rc::from(new_child));
         }
-        Some(Box::new(Self {
+        Ok(Box::new(Self {
             base: self.base.clone(),
-            children: new_children,
+            // TODO: get rid of this slow clone
+            children: (*new_children).clone(), //Rc::make_mut(&mut new_children),
         }))
     }
 }

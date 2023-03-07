@@ -1,11 +1,15 @@
+use std::backtrace::Backtrace;
 use std::collections::HashSet;
 use std::fmt::Write;
 use std::rc::Rc;
 
+use crate::core::ParseError;
 use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase, Contextual};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
 
+
+#[derive(Debug)]
 pub struct U8 {
     base: Rc<DataModelBase>,
     // data: u8,
@@ -51,15 +55,15 @@ impl Breed for U8 {
 }
 
 impl Parser for U8 {
-    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Result<Box<dyn DataModel>, ParseError> {
         if let Some(data) = input.eat(8) { // crap, I think I need `eat` to take &self instead of &mut self
             let data_model = Self {
                 base: self.base.clone(),
                 data,
             };
-            Some(Box::new(data_model))
+            Ok(Box::new(data_model))
         } else {
-            None
+            Err(ParseError::Err(ctx.clone(), input.clone(), Backtrace::capture()))
         }
     }
 }

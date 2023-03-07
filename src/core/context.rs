@@ -3,19 +3,20 @@ use std::rc::{Weak, Rc};
 use super::{DataModel, bolts::ChildMap};
 
 
-
-pub struct Context<'a> {
-    parent: Weak<Context<'a>>,
-    children: Children<'a>,
+#[derive(Debug)]
+pub struct Context {
+    parent: Weak<Context>,
+    children: Children,
 }
-pub enum Children<'a> {
+#[derive(Debug)]
+pub enum Children {
     Zilch,
     Child(Rc<dyn DataModel>),
-    ChildList(&'a Vec<Rc<dyn DataModel>>),
-    ChildMap(&'a ChildMap),
+    ChildList(Rc<Vec<Rc<dyn DataModel>>>),
+    ChildMap(Rc<ChildMap>),
 }
-impl <'a> Context<'a> {
-    pub fn new(parent: Weak<Context<'a>>, children: Children<'a>) -> Self {
+impl Context {
+    pub fn new(parent: Weak<Context>, children: Children) -> Self {
         Self {
             parent: parent,
             children,
@@ -33,14 +34,14 @@ impl <'a> Context<'a> {
     }
     pub fn vec(&self) -> &Vec<Rc<dyn DataModel>> {
         if let Children::ChildList(child_list) = &self.children {
-            *child_list
+            child_list
         } else {
             panic!()
         }
     }
     pub fn map(&self) -> &ChildMap {
         if let Children::ChildMap(child_map) = &self.children {
-            *child_map
+            child_map
         } else {
             panic!()
         }

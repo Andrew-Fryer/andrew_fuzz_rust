@@ -1,6 +1,7 @@
-use std::{rc::{Rc, Weak}, collections::HashSet};
+use std::{rc::{Rc, Weak}, collections::HashSet, fmt::Formatter};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase, Contextual, context::Children, feature_vector::FeatureVector};
+use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase, Contextual, context::Children, feature_vector::FeatureVector, ParseError};
+
 
 pub struct Set {
     base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases
@@ -48,24 +49,20 @@ impl Breed for Set {
 }
 
 impl Parser for Set {
-    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context<'_>>) -> Option<Box<dyn DataModel>> {
-        let mut new_children = Vec::new();
+    fn parse(&self, input: &mut BitArray, ctx: &Rc<Context>) -> Result<Box<dyn DataModel>, ParseError> {
+        let mut new_children = Rc::new(Vec::new());
         loop {
-            let child_ctx = Rc::new(Context::new(Rc::downgrade(ctx), Children::ChildList(&new_children)));
+            let child_ctx = Rc::new(Context::new(Rc::downgrade(ctx), Children::ChildList(new_children.clone())));
             if (self.predicate)(child_ctx.clone()) {
                 break;
             }
-            if let Some(new_child) = self.child_prototype.parse(input, &child_ctx) {
-                new_children.push(Rc::from(new_child));
-            } else {
-                println!("Failed to parse {:} at {:?}", self.name(), input);
-                return None;
-            }
+            let new_child = self.child_prototype.parse(input, &child_ctx)?;
+            Rc::make_mut(&mut new_children).push(Rc::from(new_child));
         }
-        Some(Box::new(Self {
+        Ok(Box::new(Self {
             base: self.base.clone(),
             child_prototype: self.child_prototype.clone(),
-            children: new_children,
+            children: Rc::try_unwrap(new_children).unwrap(),
             predicate: self.predicate.clone(),
         }))
     }
@@ -126,5 +123,12 @@ impl Serializer for Set {
         for c in &self.children {
             c.do_serialization(ba);
         }
+    }
+}
+
+impl std::fmt::Debug for Set {
+    fn fmt(&self, _: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        println!("Set");
+        Ok(())
     }
 }
