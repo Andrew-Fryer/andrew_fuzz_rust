@@ -90,11 +90,22 @@ impl Named for Constraint {
     }
 }
 
+// impl Vectorizer for Constraint {
+//     fn do_features(&self, features: &mut HashSet<String>) {
+//         self.child.do_features(features);
+//     }
+//     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
+//         self.child.do_vectorization(fv, depth);
+//     }
+// }
+
 impl Vectorizer for Constraint {
     fn do_features(&self, features: &mut HashSet<String>) {
+        (self as &dyn Vectorizer).do_features(features);
         self.child.do_features(features);
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
+        (self as &dyn Vectorizer).do_vectorization(fv, depth);
         self.child.do_vectorization(fv, depth);
     }
 }

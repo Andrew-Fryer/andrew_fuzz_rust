@@ -78,6 +78,8 @@ pub trait Named {
     fn set_name(&mut self, name: &str);
 }
 
+// pub trait Traversable
+
 pub trait Vectorizer: Named {
     fn do_features(&self, features: &mut HashSet<String>) {
         features.insert(self.name().to_string());

@@ -110,7 +110,17 @@ impl Named for Union {
     }
 }
 
-impl Vectorizer for Union {}
+// TODO: don't have duplicate code between here and Constraint
+impl Vectorizer for Union {
+    fn do_features(&self, features: &mut HashSet<String>) {
+        (self as &dyn Vectorizer).do_features(features);
+        self.child.do_features(features);
+    }
+    fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
+        (self as &dyn Vectorizer).do_vectorization(fv, depth);
+        self.child.do_vectorization(fv, depth);
+    }
+}
 
 impl Serializer for Union {
     fn do_serialization(&self, ba: &mut BitArray) {

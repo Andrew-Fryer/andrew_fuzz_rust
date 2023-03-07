@@ -1,4 +1,4 @@
-use std::{collections::{HashMap}, rc::{Rc, Weak}};
+use std::{collections::{HashMap, HashSet}, rc::{Rc, Weak}};
 
 use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, bolts::ChildMap};
 
@@ -92,6 +92,21 @@ impl Named for Sequence {
     }
     fn set_name(&mut self, name: &str) {
         self.base = Rc::new(DataModelBase::new(name.to_string()));
+    }
+}
+
+impl Vectorizer for Sequence {
+    fn do_features(&self, features: &mut HashSet<String>) {
+        (self as &dyn Vectorizer).do_features(features);
+        for c in self.children.vals() {
+            c.do_features(features);
+        }
+    }
+    fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
+        (self as &dyn Vectorizer).do_vectorization(fv, depth);
+        for c in self.children.vals() {
+            c.do_vectorization(fv, depth);
+        }
     }
 }
 

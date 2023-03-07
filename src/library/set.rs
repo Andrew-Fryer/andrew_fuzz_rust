@@ -1,6 +1,6 @@
-use std::{rc::{Rc, Weak}};
+use std::{rc::{Rc, Weak}, collections::HashSet};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase, Contextual, context::Children};
+use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase, Contextual, context::Children, feature_vector::FeatureVector};
 
 pub struct Set {
     base: Rc<DataModelBase>, // todo: I think DataModels should share DataModelBases
@@ -106,7 +106,21 @@ impl Named for Set {
     }
 }
 
-impl Vectorizer for Set {}
+// TODO: I could improve this with a Traverable trait or a Nonterminal trait or something
+impl Vectorizer for Set {
+    fn do_features(&self, features: &mut HashSet<String>) {
+        (self as &dyn Vectorizer).do_features(features);
+        for c in &self.children {
+            c.do_features(features);
+        }
+    }
+    fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
+        (self as &dyn Vectorizer).do_vectorization(fv, depth);
+        for c in &self.children {
+            c.do_vectorization(fv, depth);
+        }
+    }
+}
 
 impl Serializer for Set {
     // todo: avoid duplicate code between here and Sequence by introducing a `BranchingNonTerminal` trait
