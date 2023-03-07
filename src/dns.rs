@@ -14,8 +14,15 @@ pub fn dns() -> Box<dyn DataModel> {
     ])));
     let mut label = Union::new(Rc::new(vec![
         Box::new(Sequence::new(ChildMap::from([
-            ("length", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| ctx.child().int() < 0xc0))) as Rc<dyn DataModel>),
-            ("letters", Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"length".to_string()].child().int()))) as Rc<dyn DataModel>),
+            ("length", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| {
+                let len_field = ctx.child().int();
+                len_field < 0xc0
+            }))) as Rc<dyn DataModel>),
+            ("letters", Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+                let len = ctx.vec().len() as i32;
+                let len_field = ctx.parent().map()[&"length".to_string()].child().int();
+                len == len_field
+            }))) as Rc<dyn DataModel>),
         ]))),
         Box::new(Sequence::new(ChildMap::from([
             ("marker", Rc::new(Constraint::new(uint8.clone(), Rc::new(|ctx| ctx.child().int() >= 0xc0))) as Rc<dyn DataModel>),
@@ -41,16 +48,19 @@ pub fn dns() -> Box<dyn DataModel> {
     let mut domain = Set::new(label.clone(), vec![label.clone()], domain_predicate);
     domain.set_name(&"domain");
     let domain: Rc<dyn DataModel> = Rc::new(domain);
-    let rr_a: Box<dyn DataModel> = Box::new(Sequence::new(ChildMap::from([
+    // TODO: add all resource types and make sure that makes my feature vectors longer!
+    let mut resource_record = Sequence::new(ChildMap::from([
         ("name", domain.clone()),
         ("type", uint16.clone()),
         ("class", uint16.clone()),
         ("ttl", uint32.clone()),
         ("dataLength", uint16.clone()),
-        ("data", Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"dataLength".to_string()].int())))),
-    ])));
-    // let rr_aaaa = todo!();
-    let mut resource_record = Union::new(Rc::new(vec![rr_a.clone()]), Rc::from(rr_a)); //, rr_aaaa));
+        ("data", Rc::new(Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+            let current_len = ctx.vec().len() as i32;
+            let data_length = ctx.parent().map()[&"dataLength".to_string()].int();
+            current_len == data_length
+        })))),
+    ]));
     resource_record.set_name(&"rr");
     let resource_record = Rc::new(resource_record);
     let mut result = Box::new(Sequence::new(ChildMap::from([

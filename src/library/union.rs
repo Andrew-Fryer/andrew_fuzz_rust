@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, rc::Rc, borrow::Borrow};
+use std::{collections::{HashMap, HashSet}, rc::Rc, borrow::Borrow, fmt::format};
 
 use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children};
 
@@ -74,6 +74,8 @@ impl Parser for Union {
                 child: Rc::from(child),
             }))
         } else {
+            let input_str = format!("{:?}", input);
+            println!("{}", input_str);
             None
         }
     }

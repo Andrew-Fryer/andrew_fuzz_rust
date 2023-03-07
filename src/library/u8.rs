@@ -29,7 +29,9 @@ impl DataModel for U8 {}
 
 impl Contextual for U8 {
     fn int(&self) -> i32 {
-        self.data.peek(8) as i32
+        let result = self.data.peek(8) as i32;
+        println!("here");
+        result
     }
 }
 

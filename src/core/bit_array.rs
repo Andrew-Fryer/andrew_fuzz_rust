@@ -116,6 +116,7 @@ impl BitArray {
         // So, when we `eat`, we can share the underlying `Vec<u8>`.
 
         if num_bits > self.len {
+            // let input_str = format!("{:?}", self);
             return None;
         }
 
@@ -229,7 +230,21 @@ impl Debug for BitArray {
 
         // f.write_str(data);
         // std::fmt::Result ()
-        println!("{:02X?}", self.data);
+
+        // for now
+        assert!(self.pos % 8 == 0);
+        assert!(self.len % 8 == 0);
+
+        let mut ba = self.clone();
+        loop {
+            if let Some(b) = ba.eat(8) {
+                print!("{:02X} ", b.peek(8));
+            } else {
+                break;
+            }
+        }
+        println!("");
+        // println!("{:02X?}", self.data);
         Ok(())
     }
 }
