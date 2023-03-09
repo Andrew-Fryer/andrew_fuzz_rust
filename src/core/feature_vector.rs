@@ -53,6 +53,10 @@ use core::slice::Iter;
 //     }
 // }
 
+
+// TODO: I think I should also have elements in the fv that correspond to different error handling paths.
+// this way, instead of using the distance between fvs,
+// I can use the AFL max log 2 alg on my fvs, and I think that will work well...
 pub struct FeatureVector {
     fs: Vec<(String, String)>,
     d: HashMap<(String, String), f64>,
