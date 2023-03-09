@@ -1,10 +1,7 @@
 use std::rc::{Weak, Rc};
 
-use crate::core::{bit_array::BitArray, context::Context, context::Children};
 
-mod core;
-mod library;
-mod dns;
+use andrew_fuzz::{core::{bit_array::BitArray, context::Context, context::Children}, dns};
 
 fn main() {
     let mut grammar = dns::dns();
