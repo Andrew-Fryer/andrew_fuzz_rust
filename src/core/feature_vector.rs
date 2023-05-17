@@ -93,6 +93,34 @@ impl FeatureVector {
         }
         result
     }
+    pub fn bucket_values(&self) -> Vec<u8> {
+        fn bucket(mut val: u64) -> u8 {
+            // match val {
+            //     0 => 0,
+            //     // 1 => 1,
+            //     // 2..=3 => 2,
+            //     // 8..=15 => 3,
+            //     // 16..=31 => 4,
+            //     // 32..=63 => 5,
+            //     // 64..=127 => 6,
+            //     // 128..=255 => 7,
+            //     _ => val.ilog2() as u8 + 1,
+            // }
+            let mut bucket_val = 0;
+            while val > 0 {
+                val >>= 1;
+                bucket_val += 1;
+            }
+            bucket_val
+        }
+        let mut result = Vec::new();
+        for f in self.fs.iter() {
+            let val = *self.d.get(f).unwrap() as u64;
+            let bucket_val = bucket(val);
+            result.push(bucket_val);
+        }
+        result
+    }
     pub fn dist(&self, other: &FeatureVector) -> f64 {
         assert!(self.features().collect::<Vec<&(String, String)>>() == other.features().collect::<Vec<&(String, String)>>());
         let mut result = 0f64;
