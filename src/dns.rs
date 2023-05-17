@@ -1,6 +1,6 @@
-use std::{collections::HashMap, rc::Rc, borrow::BorrowMut};
+use std::{collections::HashMap, rc::{Rc, Weak}, borrow::BorrowMut};
 
-use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::{DataModel, context::Context, bolts::ChildMap}};
+use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::{DataModel, context::{Context, Children}, bolts::ChildMap}};
 use crate::core::Named;
 
 pub fn dns() -> Box<dyn DataModel> {
@@ -18,7 +18,7 @@ pub fn dns() -> Box<dyn DataModel> {
                 let len_field = ctx.child().int();
                 let result = len_field < 0xc0;
                 if !result {
-                    println!("Failed to parse label length");
+                    // println!("Failed to parse label length");
                 }
                 result
             }))) as Rc<dyn DataModel>),
@@ -27,7 +27,7 @@ pub fn dns() -> Box<dyn DataModel> {
                 let len_field = ctx.parent().map()[&"length".to_string()].child().int();
                 let result = len == len_field;
                 if result {
-                    println!("Parsed all {:} letters", len);
+                    // println!("Parsed all {:} letters", len);
                 }
                 result
             }))) as Rc<dyn DataModel>),
@@ -37,7 +37,7 @@ pub fn dns() -> Box<dyn DataModel> {
                 let marker_value = ctx.child().int();
                 let result = marker_value >= 0xc0;
                 if !result {
-                    println!("Failed to parse marker");
+                    // println!("Failed to parse marker");
                 }
                 result
             }))) as Rc<dyn DataModel>),
@@ -46,7 +46,8 @@ pub fn dns() -> Box<dyn DataModel> {
     ]), uint8.clone());
     label.set_name(&"label");
     let label: Rc<dyn DataModel> = Rc::new(label);
-    let domain_predicate: Rc<dyn Fn(Rc<Context>) -> bool> = Rc::new(|ctx| {
+    let domain_predicate: Rc<dyn Fn(Rc<Context>) -> bool> = Rc::new(|ctx: Rc<Context>| {
+        // let c = Context::new(Weak::new(), Children::Zilch);
         let v = ctx.vec();
         let v_len = v.len();
         if v_len <= 0 {
