@@ -96,7 +96,9 @@ pub trait Vectorizer: Named {
     fn features(&self) -> FeatureVector {
         let mut features = HashSet::new();
         self.do_features(&mut features);
-        FeatureVector::new(features.into_iter().collect())
+        let mut features: Vec<String> = features.into_iter().collect();
+        features.sort();
+        FeatureVector::new(features)
     }
     fn do_vectorization(&self, fv: &mut FeatureVector, depth: i32) {
         fv.tally(self.name(), depth);
