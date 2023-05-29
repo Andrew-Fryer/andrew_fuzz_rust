@@ -93,7 +93,14 @@ impl FeatureVector {
         }
         result
     }
-    pub fn bucket_values(&self) -> Vec<u8> {
+    pub fn values_u64(&self) -> Vec<u64> {
+        let mut result = Vec::new();
+        for f in self.fs.iter() {
+            result.push(*self.d.get(f).unwrap() as u64);
+        }
+        result
+    }
+    pub fn bucket_values(&self) -> Vec<u64> {
         fn bucket(mut val: u64) -> u8 {
             let mut bucket_val = 0;
             while val > 0 {
@@ -106,7 +113,7 @@ impl FeatureVector {
         for f in self.fs.iter() {
             let val = *self.d.get(f).unwrap() as u64;
             let bucket_val = bucket(val);
-            result.push(bucket_val);
+            result.push(bucket_val as u64);
         }
         result
     }
