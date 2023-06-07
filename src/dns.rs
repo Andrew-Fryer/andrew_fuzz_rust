@@ -158,10 +158,6 @@ pub fn dns() -> Box<dyn DataModel> {
         ("fudge", uint16.clone()),
         ("mac_size", uint16.clone()),
         ("mac", mac),
-        // ("mac0", uint32.clone()),
-        // ("mac1", uint32.clone()),
-        // ("mac2", uint32.clone()),
-        // ("mac3", uint32.clone()),
         ("original_id", uint16.clone()),
         ("error", uint16.clone()),
         ("other_data_length", uint16.clone()),
@@ -221,17 +217,86 @@ pub fn dns() -> Box<dyn DataModel> {
     rr_body_or_unknown.set_name("rr_body_or_unknown");
     let rr_body_or_unknown = Rc::new(rr_body_or_unknown);
 
+
+
+    let mut rr_type_a = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 1
+    }));
+    rr_type_a.set_name("rr_type_a");
+    let rr_type_a = Box::new(rr_type_a);
+
+    let mut rr_type_ns = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 2
+    }));
+    rr_type_ns.set_name("rr_type_ns");
+    let rr_type_ns = Box::new(rr_type_ns);
+
+    let mut rr_type_cname = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 5
+    }));
+    rr_type_cname.set_name("rr_type_cname");
+    let rr_type_cname = Box::new(rr_type_cname);
+
+    let mut rr_type_soa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 6
+    }));
+    rr_type_soa.set_name("rr_type_soa");
+    let rr_type_soa = Box::new(rr_type_soa);
+
+    let mut rr_type_ptr = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 12
+    }));
+    rr_type_ptr.set_name("rr_type_ptr");
+    let rr_type_ptr = Box::new(rr_type_ptr);
+
+    let mut rr_type_mx = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 15
+    }));
+    rr_type_mx.set_name("rr_type_mx");
+    let rr_type_mx = Box::new(rr_type_mx);
+
+    let mut rr_type_txt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 16
+    }));
+    rr_type_txt.set_name("rr_type_txt");
+    let rr_type_txt = Box::new(rr_type_txt);
+
+    let mut rr_type_aaaa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 28
+    }));
+    rr_type_aaaa.set_name("rr_type_aaaa");
+    let rr_type_aaaa = Box::new(rr_type_aaaa);
+
     let mut rr_type_opt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 41
     }));
     rr_type_opt.set_name("rr_type_opt");
     let rr_type_opt = Box::new(rr_type_opt);
 
+    let mut rr_type_ds = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 43
+    }));
+    rr_type_ds.set_name("rr_type_ds");
+    let rr_type_ds = Box::new(rr_type_ds);
+
     let mut rr_type_sig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 46
     }));
     rr_type_sig.set_name("rr_type_sig");
     let rr_type_sig = Box::new(rr_type_sig);
+
+    let mut rr_type_key = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 48
+    }));
+    rr_type_key.set_name("rr_type_key");
+    let rr_type_key = Box::new(rr_type_key);
+
+    let mut rr_type_nsec3 = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 53
+    }));
+    rr_type_nsec3.set_name("rr_type_nsec3");
+    let rr_type_nsec3 = Box::new(rr_type_nsec3);
+
 
     let mut rr_type_tsig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 250
@@ -240,9 +305,20 @@ pub fn dns() -> Box<dyn DataModel> {
     let rr_type_tsig = Box::new(rr_type_tsig);
 
     let mut rr_type_field = Union::new(Rc::new(vec![
-        // rr_type_a,
+        rr_type_a,
+        rr_type_ns,
+        rr_type_cname,
+        rr_type_soa,
+        rr_type_ptr,
+        rr_type_mx,
+        rr_type_txt,
+        rr_type_aaaa,
         rr_type_opt,
+        rr_type_ds,
         rr_type_sig,
+        rr_type_key,
+        rr_type_nsec3,
+
         rr_type_tsig,
         Box::new(U16::new()), // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
     ]), dummy.clone());
