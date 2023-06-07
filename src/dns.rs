@@ -102,28 +102,26 @@ pub fn dns() -> Box<dyn DataModel> {
     // let mut rr_KEY = todo!();
     // let mut rr_NSEC3 = todo!();
 
-    let mut opt_records = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    let mut rr_sig_signature = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let prev_fields_len: i32 = ctx.parent().map().vals().iter().map(|dm| dm.serialize().len()).sum();
         let current_len = ctx.vec().len() as i32;
-        let data_length = ctx.parent().map()[&"data_length".to_string()].int();
-        current_len == data_length
+        let data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
+        prev_fields_len + current_len == data_length
     }));
-    opt_records.set_name("opt_records");
-    let opt_records = Rc::new(opt_records);
-    let mut rr_opt = Sequence::new(ChildMap::from([
-        ("udp_payload_size", uint16.clone()),
-        ("extended_r_code", uint8.clone()),
-        ("version", uint8.clone()),
-        ("d0_z", uint16.clone()),
-        ("data_length", uint16.clone()),
-        ("opt_records", opt_records), // oh boy, now this is nested headers again!
-    ]));
-    rr_opt.set_name("rr_OPT");
-    // let rr_opt = Box::new(rr_opt);
-    let rr_opt = Box::new(rr_opt);
-
+    rr_sig_signature.set_name("rr_sig_signature");
+    let rr_sig_signature = Rc::new(rr_sig_signature);
     let mut rr_sig = Sequence::new(ChildMap::from([
-        ("")
-    ]))
+        ("type_cov", uint16.clone()),
+        ("alg", uint8.clone()),
+        ("labels", uint8.clone()),
+        ("origTimeToLive", uint32.clone()),
+        ("sigExp", uint32.clone()),
+        ("keyTag", uint16.clone()),
+        ("signName", domain.clone()),
+        ("signature", rr_sig_signature),
+    ]));
+    rr_sig.set_name("rr_sig");
+    let rr_sig = Box::new(rr_sig);
     
     // Should return an AST when the body is malformed, but we can still parse the rest of it?
         // I think so... because that means that we'll have a better approximation for code coverage...
@@ -131,7 +129,8 @@ pub fn dns() -> Box<dyn DataModel> {
     // I could create a new non-terminal that fails it the child read too far and eats the rest if the child didn't read enough.
     let dummy = uint8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
     let mut rr_body_union = Union::new(Rc::new(vec![
-        rr_opt,
+        // rr_opt, // note that this parses the same as unknown
+        rr_sig
     ]), dummy.clone());
     rr_body_union.set_name("rr_body_union");
     let rr_body_union = Rc::new(rr_body_union);
