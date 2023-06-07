@@ -90,14 +90,6 @@ pub fn dns() -> Box<dyn DataModel> {
     // }));
     // rr_data_set.set_name("rr_data_set");
 
-    let mut opt_records = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
-        let current_len = ctx.vec().len() as i32;
-        let data_length = ctx.parent().map()[&"data_length".to_string()].int();
-        current_len == data_length
-    }));
-    opt_records.set_name("opt_records");
-    let opt_records = Rc::new(opt_records);
-
     // let mut rr_A = todo!();
     // let mut rr_NS = todo!();
     // let mut rr_CNAME = todo!();
@@ -106,7 +98,18 @@ pub fn dns() -> Box<dyn DataModel> {
     // let mut rr_MX = todo!();
     // let mut rr_TXT = todo!();
     // let mut rr_AAAA = todo!();
-    let mut rr_OPT = Sequence::new(ChildMap::from([
+    // let mut rr_DS = todo!();
+    // let mut rr_KEY = todo!();
+    // let mut rr_NSEC3 = todo!();
+
+    let mut opt_records = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().map()[&"data_length".to_string()].int();
+        current_len == data_length
+    }));
+    opt_records.set_name("opt_records");
+    let opt_records = Rc::new(opt_records);
+    let mut rr_opt = Sequence::new(ChildMap::from([
         ("udp_payload_size", uint16.clone()),
         ("extended_r_code", uint8.clone()),
         ("version", uint8.clone()),
@@ -114,31 +117,87 @@ pub fn dns() -> Box<dyn DataModel> {
         ("data_length", uint16.clone()),
         ("opt_records", opt_records), // oh boy, now this is nested headers again!
     ]));
-    rr_OPT.set_name("rr_OPT");
-    let rr_OPT = Box::new(rr_OPT);
-    // let mut rr_DS = todo!();
-    // let mut rr_RRSIG = todo!();
-    // let mut rr_KEY = todo!();
-    // let mut rr_NSEC3 = todo!();
+    rr_opt.set_name("rr_OPT");
+    // let rr_opt = Box::new(rr_opt);
+    let rr_opt = Box::new(rr_opt);
+
+    let mut rr_sig = Sequence::new(ChildMap::from([
+        ("")
+    ]))
     
     // Should return an AST when the body is malformed, but we can still parse the rest of it?
         // I think so... because that means that we'll have a better approximation for code coverage...
     // That would mean that we'll recover from failing to parse this by just reading in `dataLength` bytes.
     // I could create a new non-terminal that fails it the child read too far and eats the rest if the child didn't read enough.
-    let dummy = uint8.clone(); // this is a silly placeholder
-    let mut resouce_record_body = Union::new(Rc::new(vec![
-        rr_OPT,
+    let dummy = uint8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
+    let mut rr_body_union = Union::new(Rc::new(vec![
+        rr_opt,
     ]), dummy.clone());
+    rr_body_union.set_name("rr_body_union");
+    let rr_body_union = Rc::new(rr_body_union);
 
+    // let mut rr_body_select = Select::new(Rc::new(|ctx| {
+    //     match ctx.parent().map()[&"type".to_string()].int() {
+    //         // 1 => 
+    //         41 => rr_opt.clone(),
+    //         46 => rr_sig.clone(),
+    //         _ => button.clone(), // just fail
+    //     }
+    // }))
 
     // TODO: add all resource types and make sure that makes my feature vectors longer!
+
+    let mut rr_body_constraint = Constraint::new(rr_body_union, Rc::new(|ctx| {
+        let actual_data_len = ctx.child().serialize().len();
+        let required_data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
+        actual_data_len == required_data_length
+    }));
+    rr_body_constraint.set_name("rr_body_constraint");
+    let rr_body_constraint = Box::new(rr_body_constraint);
+
+    let mut rr_body_unknown = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
+        current_len == data_length
+    }));
+    rr_body_unknown.set_name("rr_body_unknown");
+    let mut rr_body_unknown = Box::new(rr_body_unknown);
+
+    let mut rr_body_or_unknown = Union::new(Rc::new(vec![
+        rr_body_constraint,
+        rr_body_unknown,
+    ]), dummy.clone());
+    rr_body_or_unknown.set_name("rr_body_or_unknown");
+    let rr_body_or_unknown = Rc::new(rr_body_or_unknown);
+
+    let mut rr_type_opt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 41
+    }));
+    rr_type_opt.set_name("rr_type_opt");
+    let rr_type_opt = Box::new(rr_type_opt);
+
+    let mut rr_type_sig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 46
+    }));
+    rr_type_sig.set_name("rr_type_sig");
+    let rr_type_sig = Box::new(rr_type_sig);
+
+    let mut rr_type_field = Union::new(Rc::new(vec![
+        // rr_type_a,
+        rr_type_opt,
+        rr_type_sig,
+        Box::new(U16::new()), // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
+    ]), dummy.clone());
+    rr_type_field.set_name("rr_type_field");
+    let rr_type_field = Rc::new(rr_type_field);
+
     let mut resource_record = Sequence::new(ChildMap::from([
         ("name", domain.clone()),
-        ("type", uint16.clone()),
+        ("type", rr_type_field),
         ("class", uint16.clone()),
         ("ttl", uint32.clone()),
-        ("dataLength", uint16.clone()),
-        ("data", Rc::new(rr_data_set)),
+        ("body_length", uint16.clone()),
+        ("rr_body", rr_body_or_unknown),
     ]));
     resource_record.set_name(&"rr");
     let resource_record = Rc::new(resource_record);
