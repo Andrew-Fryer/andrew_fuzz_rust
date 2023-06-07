@@ -68,7 +68,7 @@ impl Parser for Union {
         }
         if successful_children.len() > 1 {
             // println!("Warning: found ambiguity! {:?}", successful_children.iter().map(|c| c.debug()));
-            println!("Warning: found ambiguity!");
+            // println!("Warning: found ambiguity!");
         }
         while successful_children.len() > 1 {
             successful_children.pop();
@@ -82,7 +82,7 @@ impl Parser for Union {
                 child: Rc::from(child),
             }))
         } else {
-            // println!("Failed to parse {:} at {:?}", self.name(), input);
+            // println!("failed to parse {:} at {:?}", self.name(), input);
             // TODO: should ParseError also record the base name?
             //     I think maybe Context should instead...
             Err(ParseError::Children(failures))

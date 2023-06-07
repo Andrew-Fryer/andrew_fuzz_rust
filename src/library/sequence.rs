@@ -51,6 +51,7 @@ impl Parser for Sequence {
             let child_ctx = Context::new(Rc::downgrade(ctx), Children::ChildMap(new_children.clone()));
             let new_child = c.parse(input, &Rc::new(child_ctx))?;
             // println!("parsed child: {:?}", new_child.serialize());
+            // println!("{}: parsed child: {} : {:?}", self.name(), new_child.name(), new_child.serialize());
             Rc::make_mut(&mut new_children).push(Rc::from(new_child));
         }
         Ok(Box::new(Self {

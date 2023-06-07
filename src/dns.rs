@@ -80,7 +80,7 @@ pub fn dns() -> Box<dyn DataModel> {
             let last_element_len = constraint_obj.child().int();
             last_element_len == 0 || last_element_len > 0xc0
         } else {
-            false // this is hacky, and happens when there is a (marker,ref) instead of a (length,letters)
+            true // this is hacky, and happens when there is a (marker,ref) instead of a (length,letters)
         }
     });
     let mut domain = Set::new(label.clone(), vec![label.clone()], domain_predicate);
@@ -115,7 +115,9 @@ pub fn dns() -> Box<dyn DataModel> {
     let mut rr_sig_signature = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let prev_fields_len: i32 = ctx.parent().map().vals().iter().map(|dm| dm.serialize().len() / 8).sum();
         let current_len = ctx.vec().len() as i32;
-        let data_length = ctx.parent().parent().parent().parent().parent().parent().map()[&"body_length"].int();
+        // Constraint doesn't make a wrapper around the context, so we need 4 (not 6) hops up the tree
+        // let data_length = ctx.parent().parent().parent().parent().parent().parent().map()[&"body_length"].int();
+        let data_length = ctx.parent().parent().parent().parent().map()[&"body_length"].int();
         prev_fields_len + current_len == data_length
     }));
     rr_sig_signature.set_name("rr_sig_signature");
@@ -304,6 +306,14 @@ pub fn dns() -> Box<dyn DataModel> {
     rr_type_tsig.set_name("rr_type_tsig");
     let rr_type_tsig = Box::new(rr_type_tsig);
 
+
+    let mut rr_type_default = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        // no check; this is here as a shell so that traversing the tree is the same for all tt types
+        true
+    }));
+    rr_type_default.set_name("rr_type_default");
+    let rr_type_default = Box::new(rr_type_default);
+
     let mut rr_type_field = Union::new(Rc::new(vec![
         rr_type_a,
         rr_type_ns,
@@ -320,7 +330,7 @@ pub fn dns() -> Box<dyn DataModel> {
         rr_type_nsec3,
 
         rr_type_tsig,
-        Box::new(U16::new()), // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
+        rr_type_default, // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
     ]), dummy.clone());
     rr_type_field.set_name("rr_type_field");
     let rr_type_field = Rc::new(rr_type_field);
