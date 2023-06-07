@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::{Rc, Weak}, borrow::BorrowMut};
+use std::{collections::HashMap, rc::{Rc, Weak}, borrow::BorrowMut, process::Child};
 
 use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::{DataModel, context::{Context, Children}, bolts::ChildMap}};
 use crate::core::Named;
@@ -83,12 +83,54 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     query.set_name(&"query");
     let query = Rc::new(query);
-    let mut rr_data_set = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    // let mut rr_data_set = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    //     let current_len = ctx.vec().len() as i32;
+    //     let data_length = ctx.parent().map()[&"dataLength".to_string()].int();
+    //     current_len == data_length
+    // }));
+    // rr_data_set.set_name("rr_data_set");
+
+    let mut opt_records = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
-        let data_length = ctx.parent().map()[&"dataLength".to_string()].int();
+        let data_length = ctx.parent().map()[&"data_length".to_string()].int();
         current_len == data_length
     }));
-    rr_data_set.set_name("rr_data_set");
+    opt_records.set_name("opt_records");
+    let opt_records = Rc::new(opt_records);
+
+    // let mut rr_A = todo!();
+    // let mut rr_NS = todo!();
+    // let mut rr_CNAME = todo!();
+    // let mut rr_SOA = todo!();
+    // let mut rr_PTR = todo!();
+    // let mut rr_MX = todo!();
+    // let mut rr_TXT = todo!();
+    // let mut rr_AAAA = todo!();
+    let mut rr_OPT = Sequence::new(ChildMap::from([
+        ("udp_payload_size", uint16.clone()),
+        ("extended_r_code", uint8.clone()),
+        ("version", uint8.clone()),
+        ("d0_z", uint16.clone()),
+        ("data_length", uint16.clone()),
+        ("opt_records", opt_records), // oh boy, now this is nested headers again!
+    ]));
+    rr_OPT.set_name("rr_OPT");
+    let rr_OPT = Box::new(rr_OPT);
+    // let mut rr_DS = todo!();
+    // let mut rr_RRSIG = todo!();
+    // let mut rr_KEY = todo!();
+    // let mut rr_NSEC3 = todo!();
+    
+    // Should return an AST when the body is malformed, but we can still parse the rest of it?
+        // I think so... because that means that we'll have a better approximation for code coverage...
+    // That would mean that we'll recover from failing to parse this by just reading in `dataLength` bytes.
+    // I could create a new non-terminal that fails it the child read too far and eats the rest if the child didn't read enough.
+    let dummy = uint8.clone(); // this is a silly placeholder
+    let mut resouce_record_body = Union::new(Rc::new(vec![
+        rr_OPT,
+    ]), dummy.clone());
+
+
     // TODO: add all resource types and make sure that makes my feature vectors longer!
     let mut resource_record = Sequence::new(ChildMap::from([
         ("name", domain.clone()),
