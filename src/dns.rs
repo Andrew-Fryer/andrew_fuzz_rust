@@ -14,6 +14,16 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     u32_sequence.set_name("u32_sequence");
     let uint32: Rc<dyn DataModel> = Rc::new(u32_sequence);
+    let mut u48_sequence = Sequence::new(ChildMap::from([
+        ("b0", uint8.clone()),
+        ("b1", uint8.clone()),
+        ("b2", uint8.clone()),
+        ("b3", uint8.clone()),
+        ("b4", uint8.clone()),
+        ("b5", uint8.clone()),
+    ]));
+    u48_sequence.set_name("u48_sequence");
+    let uint48: Rc<dyn DataModel> = Rc::new(u48_sequence);
     let mut letter_set = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let len = ctx.vec().len() as i32;
         let len_field = ctx.parent().map()[&"length".to_string()].child().int();
@@ -103,9 +113,9 @@ pub fn dns() -> Box<dyn DataModel> {
     // let mut rr_NSEC3 = todo!();
 
     let mut rr_sig_signature = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
-        let prev_fields_len: i32 = ctx.parent().map().vals().iter().map(|dm| dm.serialize().len()).sum();
+        let prev_fields_len: i32 = ctx.parent().map().vals().iter().map(|dm| dm.serialize().len() / 8).sum();
         let current_len = ctx.vec().len() as i32;
-        let data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
+        let data_length = ctx.parent().parent().parent().parent().parent().parent().map()[&"body_length"].int();
         prev_fields_len + current_len == data_length
     }));
     rr_sig_signature.set_name("rr_sig_signature");
@@ -126,6 +136,43 @@ pub fn dns() -> Box<dyn DataModel> {
         ctx.parent().parent().parent().map()[&"type"].child().child().int() == 46
     }));
     let rr_sig = Box::new(rr_sig);
+
+    // https://datatracker.ietf.org/doc/html/rfc2845
+    let mut mac = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().map()[&"mac_size"].int();
+        current_len == data_length
+    }));
+    mac.set_name("mac");
+    let mac = Rc::new(mac);
+    let mut other_data = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().map()[&"other_data_length"].int();
+        current_len == data_length
+    }));
+    other_data.set_name("other_data");
+    let other_data = Rc::new(other_data);
+    let mut rr_tsig = Sequence::new(ChildMap::from([
+        ("algorithm", domain.clone()),
+        ("time_signed", uint48.clone()),
+        ("fudge", uint16.clone()),
+        ("mac_size", uint16.clone()),
+        ("mac", mac),
+        // ("mac0", uint32.clone()),
+        // ("mac1", uint32.clone()),
+        // ("mac2", uint32.clone()),
+        // ("mac3", uint32.clone()),
+        ("original_id", uint16.clone()),
+        ("error", uint16.clone()),
+        ("other_data_length", uint16.clone()),
+        ("other_data", other_data),
+    ]));
+    rr_tsig.set_name("rr_tsig");
+    let rr_tsig = Rc::new(rr_tsig);
+    let rr_tsig = Constraint::new(rr_tsig, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 250
+    }));
+    let rr_tsig = Box::new(rr_tsig);
     
     // Should return an AST when the body is malformed, but we can still parse the rest of it?
         // I think so... because that means that we'll have a better approximation for code coverage...
@@ -134,7 +181,8 @@ pub fn dns() -> Box<dyn DataModel> {
     let dummy = uint8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
     let mut rr_body_union = Union::new(Rc::new(vec![
         // rr_opt, // note that this parses the same as unknown
-        rr_sig
+        rr_sig,
+        rr_tsig,
     ]), dummy.clone());
     rr_body_union.set_name("rr_body_union");
     let rr_body_union = Rc::new(rr_body_union);
@@ -151,7 +199,7 @@ pub fn dns() -> Box<dyn DataModel> {
     // TODO: add all resource types and make sure that makes my feature vectors longer!
 
     let mut rr_body_constraint = Constraint::new(rr_body_union, Rc::new(|ctx| {
-        let actual_data_len = ctx.child().serialize().len();
+        let actual_data_len = ctx.child().serialize().len() / 8;
         let required_data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
         actual_data_len == required_data_length
     }));
@@ -185,10 +233,17 @@ pub fn dns() -> Box<dyn DataModel> {
     rr_type_sig.set_name("rr_type_sig");
     let rr_type_sig = Box::new(rr_type_sig);
 
+    let mut rr_type_tsig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 250
+    }));
+    rr_type_tsig.set_name("rr_type_tsig");
+    let rr_type_tsig = Box::new(rr_type_tsig);
+
     let mut rr_type_field = Union::new(Rc::new(vec![
         // rr_type_a,
         rr_type_opt,
         rr_type_sig,
+        rr_type_tsig,
         Box::new(U16::new()), // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
     ]), dummy.clone());
     rr_type_field.set_name("rr_type_field");
@@ -206,11 +261,11 @@ pub fn dns() -> Box<dyn DataModel> {
     let resource_record = Rc::new(resource_record);
     let mut question_set = Set::new(query.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int()));
     question_set.set_name("question_set");
-    let mut answer_set = Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer".to_string()].int()));
+    let mut answer_set = Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer"].int()));
     answer_set.set_name("answer_set");
-    let mut authority_set = Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority".to_string()].int()));
+    let mut authority_set = Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority"].int()));
     authority_set.set_name("authority_set");
-    let mut additional_set = Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional".to_string()].int()));
+    let mut additional_set = Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional"].int()));
     additional_set.set_name("additional_set");
     let mut result = Box::new(Sequence::new(ChildMap::from([
         ("transactionId", uint16.clone()),
