@@ -121,6 +121,10 @@ pub fn dns() -> Box<dyn DataModel> {
         ("signature", rr_sig_signature),
     ]));
     rr_sig.set_name("rr_sig");
+    let rr_sig = Rc::new(rr_sig);
+    let rr_sig = Constraint::new(rr_sig, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 46
+    }));
     let rr_sig = Box::new(rr_sig);
     
     // Should return an AST when the body is malformed, but we can still parse the rest of it?
