@@ -147,9 +147,160 @@ pub fn dns() -> Box<dyn DataModel> {
     let mut domain = Set::new(label.clone(), vec![label.clone()], domain_predicate);
     domain.set_name(&"domain");
     let domain: Rc<dyn DataModel> = Rc::new(domain);
+
+
+    let mut rr_type_a = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 1
+    }));
+    rr_type_a.set_name("rr_type_a");
+    let rr_type_a = Box::new(rr_type_a);
+
+    let mut rr_type_ns = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 2
+    }));
+    rr_type_ns.set_name("rr_type_ns");
+    let rr_type_ns = Box::new(rr_type_ns);
+
+    let mut rr_type_cname = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 5
+    }));
+    rr_type_cname.set_name("rr_type_cname");
+    let rr_type_cname = Box::new(rr_type_cname);
+
+    let mut rr_type_soa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 6
+    }));
+    rr_type_soa.set_name("rr_type_soa");
+    let rr_type_soa = Box::new(rr_type_soa);
+
+    let mut rr_type_ptr = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 12
+    }));
+    rr_type_ptr.set_name("rr_type_ptr");
+    let rr_type_ptr = Box::new(rr_type_ptr);
+
+    let mut rr_type_mx = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 15
+    }));
+    rr_type_mx.set_name("rr_type_mx");
+    let rr_type_mx = Box::new(rr_type_mx);
+
+    let mut rr_type_txt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 16
+    }));
+    rr_type_txt.set_name("rr_type_txt");
+    let rr_type_txt = Box::new(rr_type_txt);
+
+    let mut rr_type_aaaa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 28
+    }));
+    rr_type_aaaa.set_name("rr_type_aaaa");
+    let rr_type_aaaa = Box::new(rr_type_aaaa);
+
+    let mut rr_type_opt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 41
+    }));
+    rr_type_opt.set_name("rr_type_opt");
+    let rr_type_opt = Box::new(rr_type_opt);
+
+    let mut rr_type_ds = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 43
+    }));
+    rr_type_ds.set_name("rr_type_ds");
+    let rr_type_ds = Box::new(rr_type_ds);
+
+    let mut rr_type_sig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 46
+    }));
+    rr_type_sig.set_name("rr_type_sig");
+    let rr_type_sig = Box::new(rr_type_sig);
+
+    let mut rr_type_key = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 48
+    }));
+    rr_type_key.set_name("rr_type_key");
+    let rr_type_key = Box::new(rr_type_key);
+
+    let mut rr_type_nsec3 = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 50
+    }));
+    rr_type_nsec3.set_name("rr_type_nsec3");
+    let rr_type_nsec3 = Box::new(rr_type_nsec3);
+
+
+    let mut rr_type_tsig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 250
+    }));
+    rr_type_tsig.set_name("rr_type_tsig");
+    let rr_type_tsig = Box::new(rr_type_tsig);
+
+
+    let mut query_type_axfr = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 252
+    }));
+    query_type_axfr.set_name("query_type_axfr");
+    let query_type_axfr = Box::new(query_type_axfr);
+
+    let mut query_type_mailb = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 253
+    }));
+    query_type_mailb.set_name("query_type_mailb");
+    let query_type_mailb = Box::new(query_type_mailb);
+
+
+    let mut query_type_maila = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 254
+    }));
+    query_type_maila.set_name("query_type_maila");
+    let query_type_maila = Box::new(query_type_maila);
+
+    let mut query_type_all = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        ctx.child().int() == 255
+    }));
+    query_type_all.set_name("query_type_all");
+    let query_type_all = Box::new(query_type_all);
+
+
+    let mut rr_type_default = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+        // no check; this is here as a shell so that traversing the tree is the same for all tt types
+        true
+    }));
+    rr_type_default.set_name("rr_type_default");
+    let rr_type_default = Box::new(rr_type_default);
+
+
+    let dummy = uint8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
+
+
+    let mut query_type = Union::new(Rc::new(vec![
+        rr_type_a,
+        rr_type_ns,
+        rr_type_cname,
+        rr_type_soa,
+        rr_type_ptr,
+        rr_type_mx,
+        rr_type_txt,
+        rr_type_aaaa,
+        rr_type_opt,
+        rr_type_ds,
+        rr_type_sig,
+        rr_type_key,
+        rr_type_nsec3,
+
+        rr_type_tsig,
+
+        query_type_axfr,
+        query_type_mailb,
+        query_type_maila,
+        query_type_all,
+
+        rr_type_default, // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
+    ]), dummy.clone());
+    query_type.set_name("query_type");
+    let query_type = Rc::new(query_type);
     let mut query = Sequence::new(ChildMap::from([
         ("name", domain.clone()),
-        ("type", uint16.clone()),
+        ("type", query_type),
         ("class", uint16.clone()),
     ]));
     query.set_name(&"query");
@@ -417,11 +568,7 @@ pub fn dns() -> Box<dyn DataModel> {
     }));
     let rr_tsig = Box::new(rr_tsig);
     
-    // Should return an AST when the body is malformed, but we can still parse the rest of it?
-        // I think so... because that means that we'll have a better approximation for code coverage...
-    // That would mean that we'll recover from failing to parse this by just reading in `dataLength` bytes.
-    // I could create a new non-terminal that fails it the child read too far and eats the rest if the child didn't read enough.
-    let dummy = uint8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
+
     let mut rr_body_union = Union::new(Rc::new(vec![
         rr_a,
         rr_ns,
@@ -471,7 +618,7 @@ pub fn dns() -> Box<dyn DataModel> {
 
     let mut rr_body_or_unknown = Union::new(Rc::new(vec![
         rr_body_constraint,
-        rr_body_unknown,
+        rr_body_unknown, // this gives some robustness to the parser
     ]), dummy.clone());
     rr_body_or_unknown.set_name("rr_body_or_unknown");
     let rr_body_or_unknown = Rc::new(rr_body_or_unknown);
