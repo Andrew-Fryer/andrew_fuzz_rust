@@ -471,7 +471,7 @@ pub fn dns() -> Box<dyn DataModel> {
 
     let mut rr_body_or_unknown = Union::new(Rc::new(vec![
         rr_body_constraint,
-        // rr_body_unknown,
+        rr_body_unknown,
     ]), dummy.clone());
     rr_body_or_unknown.set_name("rr_body_or_unknown");
     let rr_body_or_unknown = Rc::new(rr_body_or_unknown);
@@ -587,7 +587,7 @@ pub fn dns() -> Box<dyn DataModel> {
         rr_type_nsec3,
 
         rr_type_tsig,
-        // rr_type_default, // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
+        rr_type_default, // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
     ]), dummy.clone());
     rr_type_field.set_name("rr_type_field");
     let rr_type_field = Rc::new(rr_type_field);
