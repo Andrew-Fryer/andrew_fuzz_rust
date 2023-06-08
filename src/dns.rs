@@ -6,6 +6,7 @@ use crate::core::Named;
 pub fn dns() -> Box<dyn DataModel> {
     let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
     let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
+
     let mut u32_sequence = Sequence::new(ChildMap::from([
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
@@ -14,6 +15,7 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     u32_sequence.set_name("u32_sequence");
     let uint32: Rc<dyn DataModel> = Rc::new(u32_sequence);
+
     let mut u48_sequence = Sequence::new(ChildMap::from([
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
@@ -24,6 +26,65 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     u48_sequence.set_name("u48_sequence");
     let uint48: Rc<dyn DataModel> = Rc::new(u48_sequence);
+
+    let mut u128_sequence = Sequence::new(ChildMap::from([
+        ("b0", uint8.clone()),
+        ("b1", uint8.clone()),
+        ("b2", uint8.clone()),
+        ("b3", uint8.clone()),
+        ("b4", uint8.clone()),
+        ("b5", uint8.clone()),
+        ("b6", uint8.clone()),
+        ("b7", uint8.clone()),
+        ("b8", uint8.clone()),
+        ("b9", uint8.clone()),
+        ("b10", uint8.clone()),
+        ("b11", uint8.clone()),
+        ("b12", uint8.clone()),
+        ("b13", uint8.clone()),
+        ("b14", uint8.clone()),
+        ("b15", uint8.clone()),
+    ]));
+    u128_sequence.set_name("u128_sequence");
+    let uint128: Rc<dyn DataModel> = Rc::new(u128_sequence);
+
+    let mut u256_sequence = Sequence::new(ChildMap::from([
+        ("b0", uint8.clone()),
+        ("b1", uint8.clone()),
+        ("b2", uint8.clone()),
+        ("b3", uint8.clone()),
+        ("b4", uint8.clone()),
+        ("b5", uint8.clone()),
+        ("b6", uint8.clone()),
+        ("b7", uint8.clone()),
+        ("b8", uint8.clone()),
+        ("b9", uint8.clone()),
+        ("b10", uint8.clone()),
+        ("b11", uint8.clone()),
+        ("b12", uint8.clone()),
+        ("b13", uint8.clone()),
+        ("b14", uint8.clone()),
+        ("b15", uint8.clone()),
+        ("b16", uint8.clone()),
+        ("b17", uint8.clone()),
+        ("b18", uint8.clone()),
+        ("b19", uint8.clone()),
+        ("b20", uint8.clone()),
+        ("b21", uint8.clone()),
+        ("b22", uint8.clone()),
+        ("b23", uint8.clone()),
+        ("b24", uint8.clone()),
+        ("b25", uint8.clone()),
+        ("b26", uint8.clone()),
+        ("b27", uint8.clone()),
+        ("b28", uint8.clone()),
+        ("b29", uint8.clone()),
+        ("b30", uint8.clone()),
+        ("b31", uint8.clone()),
+    ]));
+    u256_sequence.set_name("u256_sequence");
+    let uint256: Rc<dyn DataModel> = Rc::new(u256_sequence);
+
     let mut letter_set = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let len = ctx.vec().len() as i32;
         let len_field = ctx.parent().map()[&"length".to_string()].child().int();
@@ -100,17 +161,135 @@ pub fn dns() -> Box<dyn DataModel> {
     // }));
     // rr_data_set.set_name("rr_data_set");
 
-    // let mut rr_A = todo!();
-    // let mut rr_NS = todo!();
-    // let mut rr_CNAME = todo!();
-    // let mut rr_SOA = todo!();
-    // let mut rr_PTR = todo!();
-    // let mut rr_MX = todo!();
-    // let mut rr_TXT = todo!();
-    // let mut rr_AAAA = todo!();
-    // let mut rr_DS = todo!();
-    // let mut rr_KEY = todo!();
-    // let mut rr_NSEC3 = todo!();
+
+    let mut rr_body_blob = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().parent().parent().parent().map()[&"body_length"].int();
+        current_len == data_length
+    }));
+    rr_body_blob.set_name("rr_body_blob");
+    let rr_body_blob: Rc<dyn DataModel> = Rc::new(rr_body_blob);
+
+
+// todo: move the constraint to a dummy (consumes 0 bits) terminal at start of the rr body Sequence to speed up parsing?
+    let mut rr_a = Sequence::new(ChildMap::from([
+        ("ipv4_address", uint16.clone()),
+    ]));
+    rr_a.set_name("rr_a");
+    let rr_a = Rc::new(rr_a);
+    let rr_a = Constraint::new(rr_a, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 1
+    }));
+    let rr_a = Box::new(rr_a);
+
+
+    let mut rr_ns = Sequence::new(ChildMap::from([
+        ("nameServer", domain.clone()),
+    ]));
+    rr_ns.set_name("rr_ns");
+    let rr_ns = Rc::new(rr_ns);
+    let rr_ns = Constraint::new(rr_ns, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 2
+    }));
+    let rr_ns = Box::new(rr_ns);
+
+
+    let mut rr_cname = Sequence::new(ChildMap::from([
+        ("cname", domain.clone()),
+    ]));
+    rr_cname.set_name("rr_cname");
+    let rr_cname = Rc::new(rr_cname);
+    let rr_cname = Constraint::new(rr_cname, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 5
+    }));
+    let rr_cname = Box::new(rr_cname);
+
+
+    let mut rr_soa = Sequence::new(ChildMap::from([
+        ("primaryNameServer", domain.clone()),
+        ("reponsibleAuthority", domain.clone()),
+        ("serialNumber", uint32.clone()),
+        ("refreshInterval", uint32.clone()),
+        ("retryInterval", uint32.clone()),
+        ("expireLimit", uint32.clone()),
+        ("minimumTTL", uint32.clone()),
+    ]));
+    rr_soa.set_name("rr_soa");
+    let rr_soa = Rc::new(rr_soa);
+    let rr_soa = Constraint::new(rr_soa, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 6
+    }));
+    let rr_soa = Box::new(rr_soa);
+
+
+    let mut rr_ptr = Sequence::new(ChildMap::from([
+        ("domainName", domain.clone()),
+    ]));
+    rr_ptr.set_name("rr_ptr");
+    let rr_ptr = Rc::new(rr_ptr);
+    let rr_ptr = Constraint::new(rr_ptr, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 12
+    }));
+    let rr_ptr = Box::new(rr_ptr);
+
+
+    let mut rr_mx = Sequence::new(ChildMap::from([
+        ("preference", uint16.clone()),
+        ("mailExchange", domain.clone()),
+    ]));
+    rr_mx.set_name("rr_mx");
+    let rr_mx = Rc::new(rr_mx);
+    let rr_mx = Constraint::new(rr_mx, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 15
+    }));
+    let rr_mx = Box::new(rr_mx);
+
+
+    let mut rr_txt = Sequence::new(ChildMap::from([
+        ("text", rr_body_blob.clone()),
+    ]));
+    rr_txt.set_name("rr_txt");
+    let rr_txt = Rc::new(rr_txt);
+    let rr_txt = Constraint::new(rr_txt, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 16
+    }));
+    let rr_txt = Box::new(rr_txt);
+
+
+    let mut rr_aaaa = Sequence::new(ChildMap::from([
+        ("ipv6_address", uint128.clone()),
+    ]));
+    rr_aaaa.set_name("rr_aaaa");
+    let rr_aaaa = Rc::new(rr_aaaa);
+    let rr_aaaa = Constraint::new(rr_aaaa, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 28
+    }));
+    let rr_aaaa = Box::new(rr_aaaa);
+
+
+    let mut rr_opt = Sequence::new(ChildMap::from([
+        ("opt_records", rr_body_blob),
+    ]));
+    rr_opt.set_name("rr_opt");
+    let rr_opt = Rc::new(rr_opt);
+    let rr_opt = Constraint::new(rr_opt, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 41
+    }));
+    let rr_opt = Box::new(rr_opt);
+
+
+    let mut rr_ds = Sequence::new(ChildMap::from([
+        ("keyid", uint16.clone()),
+        ("alg", uint8.clone()),
+        ("digestType", uint8.clone()),
+        ("digest", uint256.clone()),
+    ]));
+    rr_ds.set_name("rr_ds");
+    let rr_ds = Rc::new(rr_ds);
+    let rr_ds = Constraint::new(rr_ds, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 43
+    }));
+    let rr_ds = Box::new(rr_ds);
 
     let mut rr_sig_signature = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let prev_fields_len: i32 = ctx.parent().map().vals().iter().map(|dm| dm.serialize().len() / 8).sum();
@@ -138,6 +317,71 @@ pub fn dns() -> Box<dyn DataModel> {
         ctx.parent().parent().parent().map()[&"type"].child().child().int() == 46
     }));
     let rr_sig = Box::new(rr_sig);
+
+    let mut rr_key_blob = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().parent().parent().parent().map()[&"body_length"].int();
+        current_len == data_length - 4
+    }));
+    rr_key_blob.set_name("rr_key_blob");
+    let rr_key_blob: Rc<dyn DataModel> = Rc::new(rr_key_blob);
+    let mut rr_key = Sequence::new(ChildMap::from([
+        ("flags", uint16.clone()),
+        ("protocol", uint8.clone()),
+        ("algorithm", uint8.clone()),
+        ("key", rr_key_blob), // todo: we could simplify this by just having one rr_body_blob field here
+    ]));
+    rr_key.set_name("rr_key");
+    let rr_key = Rc::new(rr_key);
+    let rr_key = Constraint::new(rr_key, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 48
+    }));
+    let rr_key = Box::new(rr_key);
+
+    let mut rr_nsec3_salt_blob = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().map()[&"salt_length"].int();
+        current_len == data_length
+    }));
+    rr_nsec3_salt_blob.set_name("rr_nsec3_salt_blob");
+    let rr_nsec3_salt_blob: Rc<dyn DataModel> = Rc::new(rr_nsec3_salt_blob);
+    let mut rr_nsec3_hash_blob = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().map()[&"hash_length"].int();
+        current_len == data_length
+    }));
+    rr_nsec3_hash_blob.set_name("rr_nsec3_hash_blob");
+    let rr_nsec3_hash_blob: Rc<dyn DataModel> = Rc::new(rr_nsec3_hash_blob);
+    let mut rr_nsec3_type_map_blob = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+        let current_len = ctx.vec().len() as i32;
+        let data_length = ctx.parent().map()[&"length"].int();
+        current_len == data_length
+    }));
+    rr_nsec3_type_map_blob.set_name("rr_nsec3_type_map_blob");
+    let rr_nsec3_type_map_blob: Rc<dyn DataModel> = Rc::new(rr_nsec3_type_map_blob);
+    let mut rr_nsec3_type_map = Sequence::new(ChildMap::from([
+        ("map_num", uint8.clone()),
+        ("length", uint8.clone()),
+        ("map_bits", rr_nsec3_type_map_blob),
+    ]));
+    rr_nsec3_type_map.set_name("rr_nsec3_type_map");
+    let rr_nsec3_type_map = Rc::new(rr_nsec3_type_map);
+    let mut rr_nsec3 = Sequence::new(ChildMap::from([
+        ("alg", uint8.clone()),
+        ("flags", uint8.clone()),
+        ("iterations", uint16.clone()),
+        ("salt_length", uint8.clone()),
+        ("salt", rr_nsec3_salt_blob),
+        ("hash_length", uint8.clone()),
+        ("next_hash", rr_nsec3_hash_blob),
+        ("type_map", rr_nsec3_type_map),
+    ]));
+    rr_nsec3.set_name("rr_nsec3");
+    let rr_nsec3 = Rc::new(rr_nsec3);
+    let rr_nsec3 = Constraint::new(rr_nsec3, Rc::new(|ctx| {
+        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 50
+    }));
+    let rr_nsec3 = Box::new(rr_nsec3);
 
     // https://datatracker.ietf.org/doc/html/rfc2845
     let mut mac = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
@@ -179,7 +423,20 @@ pub fn dns() -> Box<dyn DataModel> {
     let dummy = uint8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
     let mut rr_body_union = Union::new(Rc::new(vec![
         // rr_opt, // note that this parses the same as unknown
+        rr_a,
+        rr_ns,
+        rr_cname,
+        rr_soa,
+        rr_ptr,
+        rr_mx,
+        rr_txt,
+        rr_aaaa,
+        rr_opt,
+        rr_ds,
         rr_sig,
+        rr_key,
+        rr_nsec3,
+
         rr_tsig,
     ]), dummy.clone());
     rr_body_union.set_name("rr_body_union");
@@ -214,7 +471,7 @@ pub fn dns() -> Box<dyn DataModel> {
 
     let mut rr_body_or_unknown = Union::new(Rc::new(vec![
         rr_body_constraint,
-        rr_body_unknown,
+        // rr_body_unknown,
     ]), dummy.clone());
     rr_body_or_unknown.set_name("rr_body_or_unknown");
     let rr_body_or_unknown = Rc::new(rr_body_or_unknown);
