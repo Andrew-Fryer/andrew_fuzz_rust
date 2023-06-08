@@ -139,7 +139,7 @@ pub fn dns() -> Box<dyn DataModel> {
         let last_element = v[v_len - 1].clone();
         if let Some(constraint_obj) = last_element.child().map().get(&"length".to_string()) {
             let last_element_len = constraint_obj.child().int();
-            last_element_len == 0 || last_element_len > 0xc0
+            last_element_len == 0
         } else {
             true // this is hacky, and happens when there is a (marker,ref) instead of a (length,letters)
         }
@@ -173,7 +173,7 @@ pub fn dns() -> Box<dyn DataModel> {
 
 // todo: move the constraint to a dummy (consumes 0 bits) terminal at start of the rr body Sequence to speed up parsing?
     let mut rr_a = Sequence::new(ChildMap::from([
-        ("ipv4_address", uint16.clone()),
+        ("ipv4_address", uint32.clone()),
     ]));
     rr_a.set_name("rr_a");
     let rr_a = Rc::new(rr_a);
@@ -307,6 +307,7 @@ pub fn dns() -> Box<dyn DataModel> {
         ("labels", uint8.clone()),
         ("origTimeToLive", uint32.clone()),
         ("sigExp", uint32.clone()),
+        ("sigInception", uint32.clone()),
         ("keyTag", uint16.clone()),
         ("signName", domain.clone()),
         ("signature", rr_sig_signature),
@@ -422,7 +423,6 @@ pub fn dns() -> Box<dyn DataModel> {
     // I could create a new non-terminal that fails it the child read too far and eats the rest if the child didn't read enough.
     let dummy = uint8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
     let mut rr_body_union = Union::new(Rc::new(vec![
-        // rr_opt, // note that this parses the same as unknown
         rr_a,
         rr_ns,
         rr_cname,
@@ -551,7 +551,7 @@ pub fn dns() -> Box<dyn DataModel> {
     let rr_type_key = Box::new(rr_type_key);
 
     let mut rr_type_nsec3 = Constraint::new(uint16.clone(), Rc::new(|ctx| {
-        ctx.child().int() == 53
+        ctx.child().int() == 50
     }));
     rr_type_nsec3.set_name("rr_type_nsec3");
     let rr_type_nsec3 = Box::new(rr_type_nsec3);
@@ -587,7 +587,7 @@ pub fn dns() -> Box<dyn DataModel> {
         rr_type_nsec3,
 
         rr_type_tsig,
-        rr_type_default, // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
+        // rr_type_default, // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
     ]), dummy.clone());
     rr_type_field.set_name("rr_type_field");
     let rr_type_field = Rc::new(rr_type_field);
