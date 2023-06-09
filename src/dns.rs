@@ -531,7 +531,7 @@ pub fn dns() -> Box<dyn DataModel> {
         rr_tsig.clone(),
 
     ]), dummy.clone(), Rc::new(move |ctx| {
-        match ctx.parent().map()[&"type"].int() {
+        match ctx.parent().map()[&"type"].child().child().int() {
             1 => rr_a.clone(),
             2 => rr_ns.clone(),
             5 => rr_cname.clone(),
@@ -573,7 +573,7 @@ pub fn dns() -> Box<dyn DataModel> {
 
     let mut rr_body_or_unknown = Union::new(Rc::new(vec![
         rr_body_constraint,
-        rr_body_unknown, // this gives some robustness to the parser
+        // rr_body_unknown, // this gives some robustness to the parser
     ]), dummy.clone());
     rr_body_or_unknown.set_name("rr_body_or_unknown");
     let rr_body_or_unknown = Rc::new(rr_body_or_unknown);
