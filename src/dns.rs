@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::{Rc, Weak}, borrow::BorrowMut, process::Child};
 
-use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::{DataModel, context::{Context, Children}, bolts::ChildMap}};
+use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint, switch::Switch}, core::{DataModel, context::{Context, Children}, bolts::ChildMap}};
 use crate::core::Named;
 
 pub fn dns() -> Box<dyn DataModel> {
@@ -328,10 +328,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_a.set_name("rr_a");
     let rr_a = Rc::new(rr_a);
-    let rr_a = Constraint::new(rr_a, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 1
-    }));
-    let rr_a = Box::new(rr_a);
 
 
     let mut rr_ns = Sequence::new(ChildMap::from([
@@ -339,10 +335,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_ns.set_name("rr_ns");
     let rr_ns = Rc::new(rr_ns);
-    let rr_ns = Constraint::new(rr_ns, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 2
-    }));
-    let rr_ns = Box::new(rr_ns);
 
 
     let mut rr_cname = Sequence::new(ChildMap::from([
@@ -350,10 +342,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_cname.set_name("rr_cname");
     let rr_cname = Rc::new(rr_cname);
-    let rr_cname = Constraint::new(rr_cname, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 5
-    }));
-    let rr_cname = Box::new(rr_cname);
 
 
     let mut rr_soa = Sequence::new(ChildMap::from([
@@ -367,10 +355,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_soa.set_name("rr_soa");
     let rr_soa = Rc::new(rr_soa);
-    let rr_soa = Constraint::new(rr_soa, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 6
-    }));
-    let rr_soa = Box::new(rr_soa);
 
 
     let mut rr_ptr = Sequence::new(ChildMap::from([
@@ -378,10 +362,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_ptr.set_name("rr_ptr");
     let rr_ptr = Rc::new(rr_ptr);
-    let rr_ptr = Constraint::new(rr_ptr, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 12
-    }));
-    let rr_ptr = Box::new(rr_ptr);
 
 
     let mut rr_mx = Sequence::new(ChildMap::from([
@@ -390,10 +370,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_mx.set_name("rr_mx");
     let rr_mx = Rc::new(rr_mx);
-    let rr_mx = Constraint::new(rr_mx, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 15
-    }));
-    let rr_mx = Box::new(rr_mx);
 
 
     let mut rr_txt = Sequence::new(ChildMap::from([
@@ -401,10 +377,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_txt.set_name("rr_txt");
     let rr_txt = Rc::new(rr_txt);
-    let rr_txt = Constraint::new(rr_txt, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 16
-    }));
-    let rr_txt = Box::new(rr_txt);
 
 
     let mut rr_aaaa = Sequence::new(ChildMap::from([
@@ -412,10 +384,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_aaaa.set_name("rr_aaaa");
     let rr_aaaa = Rc::new(rr_aaaa);
-    let rr_aaaa = Constraint::new(rr_aaaa, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 28
-    }));
-    let rr_aaaa = Box::new(rr_aaaa);
 
 
     let mut rr_opt = Sequence::new(ChildMap::from([
@@ -423,10 +391,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_opt.set_name("rr_opt");
     let rr_opt = Rc::new(rr_opt);
-    let rr_opt = Constraint::new(rr_opt, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 41
-    }));
-    let rr_opt = Box::new(rr_opt);
 
 
     let mut rr_ds = Sequence::new(ChildMap::from([
@@ -437,10 +401,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_ds.set_name("rr_ds");
     let rr_ds = Rc::new(rr_ds);
-    let rr_ds = Constraint::new(rr_ds, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 43
-    }));
-    let rr_ds = Box::new(rr_ds);
 
     let mut rr_sig_signature = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let prev_fields_len: i32 = ctx.parent().map().vals().iter().map(|dm| dm.serialize().len() / 8).sum();
@@ -465,10 +425,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_sig.set_name("rr_sig");
     let rr_sig = Rc::new(rr_sig);
-    let rr_sig = Constraint::new(rr_sig, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 46
-    }));
-    let rr_sig = Box::new(rr_sig);
 
     let mut rr_key_blob = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
@@ -485,10 +441,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_key.set_name("rr_key");
     let rr_key = Rc::new(rr_key);
-    let rr_key = Constraint::new(rr_key, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 48
-    }));
-    let rr_key = Box::new(rr_key);
 
     let mut rr_nsec3_salt_blob = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
@@ -530,10 +482,6 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_nsec3.set_name("rr_nsec3");
     let rr_nsec3 = Rc::new(rr_nsec3);
-    let rr_nsec3 = Constraint::new(rr_nsec3, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 50
-    }));
-    let rr_nsec3 = Box::new(rr_nsec3);
 
     // https://datatracker.ietf.org/doc/html/rfc2845
     let mut mac = Set::new(uint8.clone(), Vec::new(), Rc::new(|ctx| {
@@ -563,44 +511,51 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     rr_tsig.set_name("rr_tsig");
     let rr_tsig = Rc::new(rr_tsig);
-    let rr_tsig = Constraint::new(rr_tsig, Rc::new(|ctx| {
-        ctx.parent().parent().parent().map()[&"type"].child().child().int() == 250
+
+    let fail = Rc::new(Constraint::new(dummy.clone(), Rc::new(|_| false)));
+    let mut rr_body_switch = Switch::new(Rc::new(vec![
+        rr_a.clone(),
+        rr_ns.clone(),
+        rr_cname.clone(),
+        rr_soa.clone(),
+        rr_ptr.clone(),
+        rr_mx.clone(),
+        rr_txt.clone(),
+        rr_aaaa.clone(),
+        rr_opt.clone(),
+        rr_ds.clone(),
+        rr_sig.clone(),
+        rr_key.clone(),
+        rr_nsec3.clone(),
+
+        rr_tsig.clone(),
+
+    ]), dummy.clone(), Rc::new(move |ctx| {
+        match ctx.parent().map()[&"type"].int() {
+            1 => rr_a.clone(),
+            2 => rr_ns.clone(),
+            5 => rr_cname.clone(),
+            6 => rr_soa.clone(),
+            12 => rr_ptr.clone(),
+            15 => rr_mx.clone(),
+            16 => rr_txt.clone(),
+            28 => rr_aaaa.clone(),
+            41 => rr_opt.clone(),
+            43 => rr_ds.clone(),
+            46 => rr_sig.clone(),
+            48 => rr_key.clone(),
+            50 => rr_nsec3.clone(),
+
+            250 => rr_tsig.clone(),
+
+            _ => fail.clone(), // just fail
+        }
     }));
-    let rr_tsig = Box::new(rr_tsig);
-    
+    rr_body_switch.set_name("rr_body_switch");
+    let rr_body_switch = Rc::new(rr_body_switch);
 
-    let mut rr_body_union = Union::new(Rc::new(vec![
-        rr_a,
-        rr_ns,
-        rr_cname,
-        rr_soa,
-        rr_ptr,
-        rr_mx,
-        rr_txt,
-        rr_aaaa,
-        rr_opt,
-        rr_ds,
-        rr_sig,
-        rr_key,
-        rr_nsec3,
-
-        rr_tsig,
-    ]), dummy.clone());
-    rr_body_union.set_name("rr_body_union");
-    let rr_body_union = Rc::new(rr_body_union);
-
-    // let mut rr_body_select = Select::new(Rc::new(|ctx| {
-    //     match ctx.parent().map()[&"type".to_string()].int() {
-    //         // 1 => 
-    //         41 => rr_opt.clone(),
-    //         46 => rr_sig.clone(),
-    //         _ => button.clone(), // just fail
-    //     }
-    // }))
-
-    // TODO: add all resource types and make sure that makes my feature vectors longer!
-
-    let mut rr_body_constraint = Constraint::new(rr_body_union, Rc::new(|ctx| {
+    // TODO: I could make this more lenient by adding a Set that eats any extra bytes...
+    let mut rr_body_constraint = Constraint::new(rr_body_switch, Rc::new(|ctx| {
         let actual_data_len = ctx.child().serialize().len() / 8;
         let required_data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
         actual_data_len == required_data_length
@@ -614,7 +569,7 @@ pub fn dns() -> Box<dyn DataModel> {
         current_len == data_length
     }));
     rr_body_unknown.set_name("rr_body_unknown");
-    let mut rr_body_unknown = Box::new(rr_body_unknown);
+    let rr_body_unknown = Box::new(rr_body_unknown);
 
     let mut rr_body_or_unknown = Union::new(Rc::new(vec![
         rr_body_constraint,
