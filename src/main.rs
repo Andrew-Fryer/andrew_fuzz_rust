@@ -1,7 +1,7 @@
 use std::rc::{Weak, Rc};
 
 
-use andrew_fuzz::{core::{bit_array::BitArray, context::Context, context::Children}, dns};
+use combinator_fuzzer::{core::{bit_array::BitArray, context::Context, context::Children}, dns};
 
 fn main() {
     let mut grammar = dns::dns();
