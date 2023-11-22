@@ -17,7 +17,7 @@ pub struct Constraint {
 }
 
 impl Constraint {
-    pub fn new(child: Rc<dyn DataModel>, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+    pub fn new_no_name(child: Rc<dyn DataModel>, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Constraint".to_string())),
             child,

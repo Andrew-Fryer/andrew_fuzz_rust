@@ -95,7 +95,7 @@ pub fn dns() -> Box<dyn DataModel> {
         result
     }));
     letter_set.set_name("letter_set");
-    let mut length_constraint = Constraint::new(uint8.clone(), Rc::new(|ctx| {
+    let mut length_constraint = Constraint::new_no_name(uint8.clone(), Rc::new(|ctx| {
         let len_field = ctx.child().int();
         let result = len_field < 0xc0;
         if !result {
@@ -109,7 +109,7 @@ pub fn dns() -> Box<dyn DataModel> {
         ("letters", Rc::new(letter_set) as Rc<dyn DataModel>),
     ]));
     length_sequence.set_name("length_sequence");
-    let mut marker_constraint = Constraint::new(uint8.clone(), Rc::new(|ctx| {
+    let mut marker_constraint = Constraint::new_no_name(uint8.clone(), Rc::new(|ctx| {
         let marker_value = ctx.child().int();
         let result = marker_value >= 0xc0;
         if !result {
@@ -149,119 +149,119 @@ pub fn dns() -> Box<dyn DataModel> {
     let domain: Rc<dyn DataModel> = Rc::new(domain);
 
 
-    let mut rr_type_a = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_a = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 1
     }));
     rr_type_a.set_name("rr_type_a");
     let rr_type_a = Box::new(rr_type_a);
 
-    let mut rr_type_ns = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_ns = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 2
     }));
     rr_type_ns.set_name("rr_type_ns");
     let rr_type_ns = Box::new(rr_type_ns);
 
-    let mut rr_type_cname = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_cname = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 5
     }));
     rr_type_cname.set_name("rr_type_cname");
     let rr_type_cname = Box::new(rr_type_cname);
 
-    let mut rr_type_soa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_soa = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 6
     }));
     rr_type_soa.set_name("rr_type_soa");
     let rr_type_soa = Box::new(rr_type_soa);
 
-    let mut rr_type_ptr = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_ptr = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 12
     }));
     rr_type_ptr.set_name("rr_type_ptr");
     let rr_type_ptr = Box::new(rr_type_ptr);
 
-    let mut rr_type_mx = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_mx = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 15
     }));
     rr_type_mx.set_name("rr_type_mx");
     let rr_type_mx = Box::new(rr_type_mx);
 
-    let mut rr_type_txt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_txt = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 16
     }));
     rr_type_txt.set_name("rr_type_txt");
     let rr_type_txt = Box::new(rr_type_txt);
 
-    let mut rr_type_aaaa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_aaaa = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 28
     }));
     rr_type_aaaa.set_name("rr_type_aaaa");
     let rr_type_aaaa = Box::new(rr_type_aaaa);
 
-    let mut rr_type_opt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_opt = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 41
     }));
     rr_type_opt.set_name("rr_type_opt");
     let rr_type_opt = Box::new(rr_type_opt);
 
-    let mut rr_type_ds = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_ds = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 43
     }));
     rr_type_ds.set_name("rr_type_ds");
     let rr_type_ds = Box::new(rr_type_ds);
 
-    let mut rr_type_sig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_sig = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 46
     }));
     rr_type_sig.set_name("rr_type_sig");
     let rr_type_sig = Box::new(rr_type_sig);
 
-    let mut rr_type_key = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_key = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 48
     }));
     rr_type_key.set_name("rr_type_key");
     let rr_type_key = Box::new(rr_type_key);
 
-    let mut rr_type_nsec3 = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_nsec3 = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 50
     }));
     rr_type_nsec3.set_name("rr_type_nsec3");
     let rr_type_nsec3 = Box::new(rr_type_nsec3);
 
 
-    let mut rr_type_tsig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_tsig = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 250
     }));
     rr_type_tsig.set_name("rr_type_tsig");
     let rr_type_tsig = Box::new(rr_type_tsig);
 
 
-    let mut query_type_axfr = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut query_type_axfr = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 252
     }));
     query_type_axfr.set_name("query_type_axfr");
     let query_type_axfr = Box::new(query_type_axfr);
 
-    let mut query_type_mailb = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut query_type_mailb = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 253
     }));
     query_type_mailb.set_name("query_type_mailb");
     let query_type_mailb = Box::new(query_type_mailb);
 
 
-    let mut query_type_maila = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut query_type_maila = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 254
     }));
     query_type_maila.set_name("query_type_maila");
     let query_type_maila = Box::new(query_type_maila);
 
-    let mut query_type_all = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut query_type_all = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 255
     }));
     query_type_all.set_name("query_type_all");
     let query_type_all = Box::new(query_type_all);
 
 
-    let mut rr_type_default = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_default = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         // no check; this is here as a shell so that traversing the tree is the same for all tt types
         true
     }));
@@ -512,7 +512,7 @@ pub fn dns() -> Box<dyn DataModel> {
     rr_tsig.set_name("rr_tsig");
     let rr_tsig = Rc::new(rr_tsig);
 
-    let fail = Rc::new(Constraint::new(dummy.clone(), Rc::new(|_| false)));
+    let fail = Rc::new(Constraint::new_no_name(dummy.clone(), Rc::new(|_| false)));
     let mut rr_body_switch = Switch::new(Rc::new(vec![
         rr_a.clone(),
         rr_ns.clone(),
@@ -555,7 +555,7 @@ pub fn dns() -> Box<dyn DataModel> {
     let rr_body_switch = Rc::new(rr_body_switch);
 
     // TODO: I could make this more lenient by adding a Set that eats any extra bytes...
-    let mut rr_body_constraint = Constraint::new(rr_body_switch, Rc::new(|ctx| {
+    let mut rr_body_constraint = Constraint::new_no_name(rr_body_switch, Rc::new(|ctx| {
         let actual_data_len = ctx.child().serialize().len() / 8;
         let required_data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
         actual_data_len == required_data_length
@@ -580,93 +580,93 @@ pub fn dns() -> Box<dyn DataModel> {
 
 
 
-    let mut rr_type_a = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_a = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 1
     }));
     rr_type_a.set_name("rr_type_a");
     let rr_type_a = Box::new(rr_type_a);
 
-    let mut rr_type_ns = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_ns = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 2
     }));
     rr_type_ns.set_name("rr_type_ns");
     let rr_type_ns = Box::new(rr_type_ns);
 
-    let mut rr_type_cname = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_cname = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 5
     }));
     rr_type_cname.set_name("rr_type_cname");
     let rr_type_cname = Box::new(rr_type_cname);
 
-    let mut rr_type_soa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_soa = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 6
     }));
     rr_type_soa.set_name("rr_type_soa");
     let rr_type_soa = Box::new(rr_type_soa);
 
-    let mut rr_type_ptr = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_ptr = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 12
     }));
     rr_type_ptr.set_name("rr_type_ptr");
     let rr_type_ptr = Box::new(rr_type_ptr);
 
-    let mut rr_type_mx = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_mx = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 15
     }));
     rr_type_mx.set_name("rr_type_mx");
     let rr_type_mx = Box::new(rr_type_mx);
 
-    let mut rr_type_txt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_txt = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 16
     }));
     rr_type_txt.set_name("rr_type_txt");
     let rr_type_txt = Box::new(rr_type_txt);
 
-    let mut rr_type_aaaa = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_aaaa = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 28
     }));
     rr_type_aaaa.set_name("rr_type_aaaa");
     let rr_type_aaaa = Box::new(rr_type_aaaa);
 
-    let mut rr_type_opt = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_opt = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 41
     }));
     rr_type_opt.set_name("rr_type_opt");
     let rr_type_opt = Box::new(rr_type_opt);
 
-    let mut rr_type_ds = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_ds = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 43
     }));
     rr_type_ds.set_name("rr_type_ds");
     let rr_type_ds = Box::new(rr_type_ds);
 
-    let mut rr_type_sig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_sig = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 46
     }));
     rr_type_sig.set_name("rr_type_sig");
     let rr_type_sig = Box::new(rr_type_sig);
 
-    let mut rr_type_key = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_key = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 48
     }));
     rr_type_key.set_name("rr_type_key");
     let rr_type_key = Box::new(rr_type_key);
 
-    let mut rr_type_nsec3 = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_nsec3 = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 50
     }));
     rr_type_nsec3.set_name("rr_type_nsec3");
     let rr_type_nsec3 = Box::new(rr_type_nsec3);
 
 
-    let mut rr_type_tsig = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_tsig = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 250
     }));
     rr_type_tsig.set_name("rr_type_tsig");
     let rr_type_tsig = Box::new(rr_type_tsig);
 
 
-    let mut rr_type_default = Constraint::new(uint16.clone(), Rc::new(|ctx| {
+    let mut rr_type_default = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         // no check; this is here as a shell so that traversing the tree is the same for all tt types
         true
     }));
