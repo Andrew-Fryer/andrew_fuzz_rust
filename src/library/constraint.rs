@@ -24,6 +24,11 @@ impl Constraint {
             constraint_fn,
         }
     }
+    pub fn new(name: &str, child: Rc<dyn DataModel>, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+        let mut result = Self::new_no_name(child, constraint_fn);
+        result.set_name(name);
+        result
+    }
 }
 
 impl DataModel for Constraint {}

@@ -149,17 +149,13 @@ pub fn dns() -> Box<dyn DataModel> {
     let domain: Rc<dyn DataModel> = Rc::new(domain);
 
 
-    let mut rr_type_a = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
+    let rr_type_a = Box::new(Constraint::new("rr_type_a", uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 1
-    }));
-    rr_type_a.set_name("rr_type_a");
-    let rr_type_a = Box::new(rr_type_a);
+    })));
 
-    let mut rr_type_ns = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
+    let rr_type_ns = Box::new(Constraint::new("rr_type_ns", uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 2
-    }));
-    rr_type_ns.set_name("rr_type_ns");
-    let rr_type_ns = Box::new(rr_type_ns);
+    })));
 
     let mut rr_type_cname = Constraint::new_no_name(uint16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 5
