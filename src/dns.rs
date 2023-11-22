@@ -7,7 +7,7 @@ pub fn dns() -> Box<dyn DataModel> {
     let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
     let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
 
-    let mut u32_sequence = Sequence::new(ChildMap::from([
+    let mut u32_sequence = Sequence::new_no_name(ChildMap::from([
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
@@ -16,7 +16,7 @@ pub fn dns() -> Box<dyn DataModel> {
     u32_sequence.set_name("u32_sequence");
     let uint32: Rc<dyn DataModel> = Rc::new(u32_sequence);
 
-    let mut u48_sequence = Sequence::new(ChildMap::from([
+    let mut u48_sequence = Sequence::new_no_name(ChildMap::from([
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
@@ -27,7 +27,7 @@ pub fn dns() -> Box<dyn DataModel> {
     u48_sequence.set_name("u48_sequence");
     let uint48: Rc<dyn DataModel> = Rc::new(u48_sequence);
 
-    let mut u128_sequence = Sequence::new(ChildMap::from([
+    let mut u128_sequence = Sequence::new_no_name(ChildMap::from([
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
@@ -48,7 +48,7 @@ pub fn dns() -> Box<dyn DataModel> {
     u128_sequence.set_name("u128_sequence");
     let uint128: Rc<dyn DataModel> = Rc::new(u128_sequence);
 
-    let mut u256_sequence = Sequence::new(ChildMap::from([
+    let mut u256_sequence = Sequence::new_no_name(ChildMap::from([
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
@@ -104,7 +104,7 @@ pub fn dns() -> Box<dyn DataModel> {
         result
     }));
     length_constraint.set_name("length_constraint");
-    let mut length_sequence = Sequence::new(ChildMap::from([
+    let mut length_sequence = Sequence::new_no_name(ChildMap::from([
         ("length", Rc::new(length_constraint) as Rc<dyn DataModel>),
         ("letters", Rc::new(letter_set) as Rc<dyn DataModel>),
     ]));
@@ -118,7 +118,7 @@ pub fn dns() -> Box<dyn DataModel> {
         result
     }));
     marker_constraint.set_name("marker_constraint");
-    let mut marker_sequence = Sequence::new(ChildMap::from([
+    let mut marker_sequence = Sequence::new_no_name(ChildMap::from([
         ("marker", Rc::new(marker_constraint) as Rc<dyn DataModel>),
         ("ref", uint8.clone()),
     ]));
@@ -294,7 +294,7 @@ pub fn dns() -> Box<dyn DataModel> {
     ]), dummy.clone());
     query_type.set_name("query_type");
     let query_type = Rc::new(query_type);
-    let mut query = Sequence::new(ChildMap::from([
+    let mut query = Sequence::new_no_name(ChildMap::from([
         ("name", domain.clone()),
         ("type", query_type),
         ("class", uint16.clone()),
@@ -319,28 +319,28 @@ pub fn dns() -> Box<dyn DataModel> {
 
 
 // todo: move the constraint to a dummy (consumes 0 bits) terminal at start of the rr body Sequence to speed up parsing?
-    let mut rr_a = Sequence::new(ChildMap::from([
+    let mut rr_a = Sequence::new_no_name(ChildMap::from([
         ("ipv4_address", uint32.clone()),
     ]));
     rr_a.set_name("rr_a");
     let rr_a = Rc::new(rr_a);
 
 
-    let mut rr_ns = Sequence::new(ChildMap::from([
+    let mut rr_ns = Sequence::new_no_name(ChildMap::from([
         ("nameServer", domain.clone()),
     ]));
     rr_ns.set_name("rr_ns");
     let rr_ns = Rc::new(rr_ns);
 
 
-    let mut rr_cname = Sequence::new(ChildMap::from([
+    let mut rr_cname = Sequence::new_no_name(ChildMap::from([
         ("cname", domain.clone()),
     ]));
     rr_cname.set_name("rr_cname");
     let rr_cname = Rc::new(rr_cname);
 
 
-    let mut rr_soa = Sequence::new(ChildMap::from([
+    let mut rr_soa = Sequence::new_no_name(ChildMap::from([
         ("primaryNameServer", domain.clone()),
         ("reponsibleAuthority", domain.clone()),
         ("serialNumber", uint32.clone()),
@@ -353,14 +353,14 @@ pub fn dns() -> Box<dyn DataModel> {
     let rr_soa = Rc::new(rr_soa);
 
 
-    let mut rr_ptr = Sequence::new(ChildMap::from([
+    let mut rr_ptr = Sequence::new_no_name(ChildMap::from([
         ("domainName", domain.clone()),
     ]));
     rr_ptr.set_name("rr_ptr");
     let rr_ptr = Rc::new(rr_ptr);
 
 
-    let mut rr_mx = Sequence::new(ChildMap::from([
+    let mut rr_mx = Sequence::new_no_name(ChildMap::from([
         ("preference", uint16.clone()),
         ("mailExchange", domain.clone()),
     ]));
@@ -368,28 +368,28 @@ pub fn dns() -> Box<dyn DataModel> {
     let rr_mx = Rc::new(rr_mx);
 
 
-    let mut rr_txt = Sequence::new(ChildMap::from([
+    let mut rr_txt = Sequence::new_no_name(ChildMap::from([
         ("text", rr_body_blob.clone()),
     ]));
     rr_txt.set_name("rr_txt");
     let rr_txt = Rc::new(rr_txt);
 
 
-    let mut rr_aaaa = Sequence::new(ChildMap::from([
+    let mut rr_aaaa = Sequence::new_no_name(ChildMap::from([
         ("ipv6_address", uint128.clone()),
     ]));
     rr_aaaa.set_name("rr_aaaa");
     let rr_aaaa = Rc::new(rr_aaaa);
 
 
-    let mut rr_opt = Sequence::new(ChildMap::from([
+    let mut rr_opt = Sequence::new_no_name(ChildMap::from([
         ("opt_records", rr_body_blob),
     ]));
     rr_opt.set_name("rr_opt");
     let rr_opt = Rc::new(rr_opt);
 
 
-    let mut rr_ds = Sequence::new(ChildMap::from([
+    let mut rr_ds = Sequence::new_no_name(ChildMap::from([
         ("keyid", uint16.clone()),
         ("alg", uint8.clone()),
         ("digestType", uint8.clone()),
@@ -408,7 +408,7 @@ pub fn dns() -> Box<dyn DataModel> {
     }));
     rr_sig_signature.set_name("rr_sig_signature");
     let rr_sig_signature = Rc::new(rr_sig_signature);
-    let mut rr_sig = Sequence::new(ChildMap::from([
+    let mut rr_sig = Sequence::new_no_name(ChildMap::from([
         ("type_cov", uint16.clone()),
         ("alg", uint8.clone()),
         ("labels", uint8.clone()),
@@ -429,7 +429,7 @@ pub fn dns() -> Box<dyn DataModel> {
     }));
     rr_key_blob.set_name("rr_key_blob");
     let rr_key_blob: Rc<dyn DataModel> = Rc::new(rr_key_blob);
-    let mut rr_key = Sequence::new(ChildMap::from([
+    let mut rr_key = Sequence::new_no_name(ChildMap::from([
         ("flags", uint16.clone()),
         ("protocol", uint8.clone()),
         ("algorithm", uint8.clone()),
@@ -459,14 +459,14 @@ pub fn dns() -> Box<dyn DataModel> {
     }));
     rr_nsec3_type_map_blob.set_name("rr_nsec3_type_map_blob");
     let rr_nsec3_type_map_blob: Rc<dyn DataModel> = Rc::new(rr_nsec3_type_map_blob);
-    let mut rr_nsec3_type_map = Sequence::new(ChildMap::from([
+    let mut rr_nsec3_type_map = Sequence::new_no_name(ChildMap::from([
         ("map_num", uint8.clone()),
         ("length", uint8.clone()),
         ("map_bits", rr_nsec3_type_map_blob),
     ]));
     rr_nsec3_type_map.set_name("rr_nsec3_type_map");
     let rr_nsec3_type_map = Rc::new(rr_nsec3_type_map);
-    let mut rr_nsec3 = Sequence::new(ChildMap::from([
+    let mut rr_nsec3 = Sequence::new_no_name(ChildMap::from([
         ("alg", uint8.clone()),
         ("flags", uint8.clone()),
         ("iterations", uint16.clone()),
@@ -494,7 +494,7 @@ pub fn dns() -> Box<dyn DataModel> {
     }));
     other_data.set_name("other_data");
     let other_data = Rc::new(other_data);
-    let mut rr_tsig = Sequence::new(ChildMap::from([
+    let mut rr_tsig = Sequence::new_no_name(ChildMap::from([
         ("algorithm", domain.clone()),
         ("time_signed", uint48.clone()),
         ("fudge", uint16.clone()),
@@ -690,7 +690,7 @@ pub fn dns() -> Box<dyn DataModel> {
     rr_type_field.set_name("rr_type_field");
     let rr_type_field = Rc::new(rr_type_field);
 
-    let mut resource_record = Sequence::new(ChildMap::from([
+    let mut resource_record = Sequence::new_no_name(ChildMap::from([
         ("name", domain.clone()),
         ("type", rr_type_field),
         ("class", uint16.clone()),
@@ -708,7 +708,7 @@ pub fn dns() -> Box<dyn DataModel> {
     authority_set.set_name("authority_set");
     let mut additional_set = Set::new(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional"].int()));
     additional_set.set_name("additional_set");
-    let mut result = Box::new(Sequence::new(ChildMap::from([
+    let mut result = Box::new(Sequence::new_no_name(ChildMap::from([
         ("transactionId", uint16.clone()),
         ("flags", uint16.clone()),
         ("numQuestion", uint16.clone()),

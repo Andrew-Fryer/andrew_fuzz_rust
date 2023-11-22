@@ -11,7 +11,7 @@ pub struct Sequence {
 }
 
 impl Sequence {
-    pub fn new(children: ChildMap) -> Self {
+    pub fn new_no_name(children: ChildMap) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Sequence".to_string())),
             children,
