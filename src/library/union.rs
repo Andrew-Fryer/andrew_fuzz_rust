@@ -7,19 +7,19 @@ use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, A
 pub struct Union {
     base: Rc<DataModelBase>, // todo: I should have a static DataModelBase for each thing in library. Then, we store a Rc<DataModelBase> in each DataModel...
     // bnt: BranchingNonTerminal,
-    potential_children: Rc<Vec<Box<dyn DataModel>>>,
+    potential_children: Rc<Vec<Rc<dyn DataModel>>>,
     child: Rc<dyn DataModel>,
 }
 
 impl Union {
-    pub fn new_no_name(potential_children: Rc<Vec<Box<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
+    pub fn new_no_name(potential_children: Rc<Vec<Rc<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Union".to_string())),
             potential_children,
             child,
         }
     }
-    pub fn new(name: &str, potential_children: Rc<Vec<Box<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
+    pub fn new(name: &str, potential_children: Rc<Vec<Rc<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
         let mut result = Self::new_no_name(potential_children, child);
         result.set_name(name);
         result

@@ -10,10 +10,10 @@ pub fn simple() -> Box<dyn DataModel> {
         ("first_field", uint8.clone()),
         ("second_field", uint16.clone()),
         ("third_field", Rc::new(Union::new("", Rc::new(vec![
-            Box::new(Constraint::new("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
+            Rc::new(Constraint::new("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
                 ctx.child().int() % 8 == 0
             }))),
-            Box::new(Sequence::new("uint16_wrapper", ChildMap::from([
+            Rc::new(Sequence::new("uint16_wrapper", ChildMap::from([
                 ("field", uint16.clone()),
             ]))),
         ]), uint16.clone()))),
@@ -142,8 +142,8 @@ pub fn dns() -> Box<dyn DataModel> {
     ]));
     marker_sequence.set_name("marker_sequence");
     let mut label = Union::new_no_name(Rc::new(vec![
-        Box::new(length_sequence),
-        Box::new(marker_sequence),
+        Rc::new(length_sequence),
+        Rc::new(marker_sequence),
     ]), uint8.clone());
     label.set_name(&"label");
     let label: Rc<dyn DataModel> = Rc::new(label);
