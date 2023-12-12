@@ -4,11 +4,13 @@ use std::rc::{Weak, Rc};
 use combinator_fuzzer::{core::{bit_array::BitArray, context::Context, context::Children}, dns};
 
 fn main() {
-    let mut grammar = dns::dns();
+    // let mut grammar = dns::dns();
+    let mut grammar = dns::simple();
     // let mut input = BitArray::from_file("./input_data".to_string()).unwrap();
     // let mut input = BitArray::from_file("./.cur_input".to_string()).unwrap();
     // let mut input = BitArray::from_file("./small_dns_packet.binary".to_string()).unwrap();
-    let mut input = BitArray::from_file("./.cur_input".to_string()).unwrap();
+    // let mut input = BitArray::from_file("./.cur_input".to_string()).unwrap();
+    let mut input = BitArray::from_file("./.cur_simple_input".to_string()).unwrap();
     let ctx = Context::new(Weak::new(), Children::Zilch);
     let ast = grammar.parse(&mut input, &Rc::new(ctx)).unwrap();
     return;
