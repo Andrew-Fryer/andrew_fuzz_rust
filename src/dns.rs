@@ -724,7 +724,7 @@ pub fn dns() -> Rc<dyn DataModel> {
     authority_set.set_name("authority_set");
     let mut additional_set = Set::new_no_name(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional"].int()));
     additional_set.set_name("additional_set");
-    let mut result = Rc::new(Sequence::new_no_name(ChildMap::from([
+    let result = Rc::new(Sequence::new("dns", ChildMap::from([
         ("transactionId", uint16.clone()),
         ("flags", uint16.clone()),
         ("numQuestion", uint16.clone()),
@@ -737,6 +737,5 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("additional", Rc::new(additional_set)),
         ("end", Rc::new(Button::new())),
     ])));
-    result.set_name(&"dns");
     result
 }
