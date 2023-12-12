@@ -3,6 +3,24 @@ use std::{collections::HashMap, rc::{Rc, Weak}, borrow::BorrowMut, process::Chil
 use crate::{library::{set::Set, sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint, switch::Switch}, core::{DataModel, context::{Context, Children}, bolts::ChildMap}};
 use crate::core::Named;
 
+pub fn simple() -> Box<dyn DataModel> {
+    let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
+    let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
+    let grammar = Sequence::new("simple_root", ChildMap::from([
+        ("first_field", uint8.clone()),
+        ("second_field", uint16.clone()),
+        ("third_field", Rc::new(Union::new("", Rc::new(vec![
+            Box::new(Constraint::new("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
+                ctx.child().int() % 8 == 0
+            }))),
+            Box::new(Sequence::new("uint16_wrapper", ChildMap::from([
+                ("field", uint16.clone()),
+            ]))),
+        ]), uint16.clone()))),
+    ]));
+    Box::new(grammar)
+}
+
 pub fn dns() -> Box<dyn DataModel> {
     let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
     let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
