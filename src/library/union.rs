@@ -12,12 +12,17 @@ pub struct Union {
 }
 
 impl Union {
-    pub fn new(potential_children: Rc<Vec<Box<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
+    pub fn new_no_name(potential_children: Rc<Vec<Box<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Union".to_string())),
             potential_children,
             child,
         }
+    }
+    pub fn new(name: &str, potential_children: Rc<Vec<Box<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
+        let mut result = Self::new_no_name(potential_children, child);
+        result.set_name(name);
+        result
     }
     // todo: this should probably be an interface or something...
     // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#

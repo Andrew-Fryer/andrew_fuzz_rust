@@ -12,13 +12,18 @@ pub struct Set {
 
 impl Set {
     // Should I just make children an empty vec?
-    pub fn new(child_prototype: Rc<dyn DataModel>, children: Vec<Rc<dyn DataModel>>, predicate: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+    pub fn new_no_name(child_prototype: Rc<dyn DataModel>, children: Vec<Rc<dyn DataModel>>, predicate: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Set".to_string())),
             child_prototype,
             children,
             predicate,
         }
+    }
+    pub fn new(name: &str, child_prototype: Rc<dyn DataModel>, predicate: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+        let mut result = Self::new_no_name(child_prototype, Vec::new(), predicate);
+        result.set_name(name);
+        result
     }
     pub fn set_name(&mut self, name: &str) {
         self.base = Rc::new(DataModelBase::new(name.to_string()));

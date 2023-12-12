@@ -17,6 +17,11 @@ impl Sequence {
             children,
         }
     }
+    pub fn new(name: &str, children: ChildMap) -> Self {
+        let mut result = Self::new_no_name(children);
+        result.set_name(name);
+        result
+    }
     // todo: this should probably be an interface or something...
     // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#
 }
