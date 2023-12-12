@@ -5,7 +5,7 @@ use crate::{library::{sequence::Sequence, u8::U8, u16::U16, button::Button, unio
 pub fn simple() -> Rc<dyn DataModel> {
     let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
     let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
-    let grammar = Sequence::new("simple_root", ChildMap::from([
+    Rc::new(Sequence::new("simple_root", ChildMap::from([
         ("first_field", uint8.clone()),
         ("second_field", uint16.clone()),
         ("third_field", Rc::new(Union::new("", Rc::new(vec![
@@ -15,8 +15,7 @@ pub fn simple() -> Rc<dyn DataModel> {
             uint16.clone(),
         ]), uint16.clone()))),
         ("end", Rc::new(Button::new())),
-    ]));
-    Rc::new(grammar)
+    ])))
 }
 
 // pub fn dns() -> Rc<dyn DataModel> {
