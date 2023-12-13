@@ -20,10 +20,15 @@ impl Set {
             predicate,
         }
     }
-    pub fn new(name: &str, child_prototype: Rc<dyn DataModel>, predicate: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+    pub fn new(name: &str, child_prototype: Rc<dyn DataModel>, predicate: Rc<dyn Fn(Rc<Context>) -> bool>) -> RcDataModel {
         let mut result = Self::new_no_name(child_prototype, Vec::new(), predicate);
         result.set_name(name);
-        result
+        Rc::new(result)
+    }
+    pub fn new_with_children(name: &str, child_prototype: Rc<dyn DataModel>, children: Vec<Rc<dyn DataModel>>, predicate: Rc<dyn Fn(Rc<Context>) -> bool>) -> RcDataModel {
+        let mut result = Self::new_no_name(child_prototype, children, predicate);
+        result.set_name(name);
+        Rc::new(result)
     }
     pub fn set_name(&mut self, name: &str) {
         self.base = Rc::new(DataModelBase::new(name.to_string()));
