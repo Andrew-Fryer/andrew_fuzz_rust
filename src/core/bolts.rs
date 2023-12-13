@@ -6,11 +6,26 @@ use super::DataModel;
 
 #[derive(Debug, Clone)]
 pub struct ChildMap {
-    k_to_i: Rc<HashMap<&'static str, usize>>,
+    // k_to_i: Rc<HashMap<&'static str, usize>>,
+    k_to_i: Rc<HashMap<String, usize>>,
     arr: Vec<Rc<dyn DataModel>>,
 }
 
 impl ChildMap {
+    pub fn new(kv_arr: Vec<(&str, Rc<dyn DataModel>)>) -> Self {
+        // todo: remove duplicate code here
+        let mut k_to_i = HashMap::new();
+        let mut arr = Vec::new();
+        for (i, (k, child)) in kv_arr.iter().enumerate() {
+            let result = k_to_i.insert(k.to_string(), i);
+            assert!(result == None);
+            arr.push(child.clone());
+        }
+        Self {
+            k_to_i: Rc::new(k_to_i),
+            arr,
+        }
+    }
     pub fn empty(&self) -> Self {
         Self {
             k_to_i: self.k_to_i.clone(),
@@ -44,21 +59,21 @@ impl ChildMap {
     }
 }
 
-impl<const N: usize> From<[(&'static str, Rc<dyn DataModel>); N]> for ChildMap {
-    fn from(kv_arr: [(&'static str, Rc<dyn DataModel>); N]) -> Self {
-        let mut k_to_i = HashMap::new();
-        let mut arr = Vec::new();
-        for (i, (k, child)) in kv_arr.iter().enumerate() {
-            let result = k_to_i.insert(*k, i);
-            assert!(result == None);
-            arr.push(child.clone());
-        }
-        Self {
-            k_to_i: Rc::new(k_to_i),
-            arr,
-        }
-    }
-}
+// impl<const N: usize> From<[(&'static str, Rc<dyn DataModel>); N]> for ChildMap {
+//     fn from(kv_arr: [(&'static str, Rc<dyn DataModel>); N]) -> Self {
+//         let mut k_to_i = HashMap::new();
+//         let mut arr = Vec::new();
+//         for (i, (k, child)) in kv_arr.iter().enumerate() {
+//             let result = k_to_i.insert(*k, i);
+//             assert!(result == None);
+//             arr.push(child.clone());
+//         }
+//         Self {
+//             k_to_i: Rc::new(k_to_i),
+//             arr,
+//         }
+//     }
+// }
 
 // impl Index for ChildMap {
 //     type Output: 

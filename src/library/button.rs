@@ -22,6 +22,10 @@ impl Button {
     }
 }
 
+pub fn button() -> RcDataModel {
+    Rc::new(Button::new())
+}
+
 impl DataModel for Button {}
 
 impl Contextual for Button {}

@@ -26,6 +26,10 @@ impl Sequence {
     // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#
 }
 
+pub fn sequence(name: &str, children: Vec<(&str, RcDataModel)>) -> RcDataModel {
+    Rc::new(Sequence::new(name, ChildMap::new(children)))
+}
+
 impl DataModel for Sequence {}
 
 impl Contextual for Sequence {

@@ -31,6 +31,10 @@ impl Union {
     }
 }
 
+pub fn union(name: &str, potential_children: Vec<RcDataModel>, child: Rc<dyn DataModel>) -> RcDataModel {
+    Rc::new(Union::new(name, Rc::new(potential_children), child))
+}
+
 impl DataModel for Union {}
 
 impl Contextual for Union {
