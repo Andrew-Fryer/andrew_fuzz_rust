@@ -8,7 +8,7 @@ pub fn simple() -> Rc<dyn DataModel> {
     Rc::new(Sequence::new("simple_root", ChildMap::from([
         ("first_field", uint8.clone()),
         ("second_field", uint16.clone()),
-        ("third_field", Rc::new(Union::new("", Rc::new(vec![
+        ("third_field", Rc::new(Union::new("third_field_union", Rc::new(vec![
             Rc::new(Constraint::new("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
                 ctx.child().int() % 8 == 0
             }))),

@@ -142,3 +142,9 @@ impl Serializer for Union {
         self.child.do_serialization(ba);
     }
 }
+
+impl From<Union> for Rc<dyn DataModel> {
+    fn from(dm: Union) -> Rc<dyn DataModel> {
+        Rc::new(dm)
+    }
+}

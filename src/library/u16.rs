@@ -98,3 +98,9 @@ impl Serializer for U16 {
         ba.extend(&self.data);
     }
 }
+
+impl From<U16> for Rc<dyn DataModel> {
+    fn from(dm: U16) -> Rc<dyn DataModel> {
+        Rc::new(dm)
+    }
+}

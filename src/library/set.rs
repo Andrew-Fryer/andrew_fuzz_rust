@@ -137,3 +137,9 @@ impl std::fmt::Debug for Set {
         Ok(())
     }
 }
+
+impl From<Set> for Rc<dyn DataModel> {
+    fn from(dm: Set) -> Rc<dyn DataModel> {
+        Rc::new(dm)
+    }
+}

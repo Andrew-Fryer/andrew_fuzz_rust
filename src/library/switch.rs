@@ -116,3 +116,9 @@ impl Serializer for Switch {
         self.child.do_serialization(ba);
     }
 }
+
+impl From<Switch> for Rc<dyn DataModel> {
+    fn from(dm: Switch) -> Rc<dyn DataModel> {
+        Rc::new(dm)
+    }
+}

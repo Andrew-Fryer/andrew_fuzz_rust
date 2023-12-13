@@ -25,6 +25,7 @@ impl Constraint {
         }
     }
     pub fn new(name: &str, child: Rc<dyn DataModel>, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+        let child = Rc::<dyn DataModel>::from(child);
         let mut result = Self::new_no_name(child, constraint_fn);
         result.set_name(name);
         result
@@ -125,5 +126,11 @@ impl std::fmt::Debug for Constraint {
     fn fmt(&self, _: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         println!("Constraint");
         Ok(())
+    }
+}
+
+impl From<Constraint> for Rc<dyn DataModel> {
+    fn from(dm: Constraint) -> Rc<dyn DataModel> {
+        Rc::new(dm)
     }
 }

@@ -121,3 +121,9 @@ impl Serializer for Sequence {
         }
     }
 }
+
+impl From<Sequence> for Rc<dyn DataModel> {
+    fn from(dm: Sequence) -> Rc<dyn DataModel> {
+        Rc::new(dm)
+    }
+}

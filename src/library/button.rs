@@ -79,3 +79,9 @@ impl Serializer for Button {
         // don't write out anything
     }
 }
+
+impl From<Button> for Rc<dyn DataModel> {
+    fn from(dm: Button) -> Rc<dyn DataModel> {
+        Rc::new(dm)
+    }
+}
