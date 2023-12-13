@@ -12,6 +12,7 @@ fn main() {
     let mut input = BitArray::from_file("./.cur_input".to_string()).unwrap();
     let ctx = Context::new(Weak::new(), Children::Zilch);
     let ast = grammar.parse(&mut input, &Rc::new(ctx)).unwrap();
+    println!("done parsing");
     return;
     let fuzz = ast.fuzz();
 
