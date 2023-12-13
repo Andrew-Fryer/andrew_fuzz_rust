@@ -3,11 +3,12 @@ use std::collections::HashSet;
 use std::fmt::{Write, Formatter};
 use std::rc::Rc;
 
-use crate::core::ParseError;
+use crate::core::{ParseError, RcDataModel};
 use crate::core::context::Children;
 use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase, Contextual};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
+use crate::impl_into_RcDataModel;
 
 
 pub struct Constraint {
@@ -24,12 +25,17 @@ impl Constraint {
             constraint_fn,
         }
     }
-    pub fn new(name: &str, child: Rc<dyn DataModel>, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
-        let child = Rc::<dyn DataModel>::from(child);
-        let mut result = Self::new_no_name(child, constraint_fn);
+    pub fn new<T: Into<RcDataModel>>(name: &str, child: T, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+        // let child = Rc::<dyn DataModel>::from(child);
+        let child = child.into();
+        let mut result = Self::new_no_name(child.0, constraint_fn);
         result.set_name(name);
         result
     }
+}
+
+pub fn constraint<T: Into<RcDataModel>>(name: &str, child: T, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> RcDataModel {
+    RcDataModel::new(Constraint::new(name, child, constraint_fn))
 }
 
 impl DataModel for Constraint {}
@@ -129,8 +135,10 @@ impl std::fmt::Debug for Constraint {
     }
 }
 
-impl From<Constraint> for Rc<dyn DataModel> {
-    fn from(dm: Constraint) -> Rc<dyn DataModel> {
-        Rc::new(dm)
-    }
-}
+// impl From<Constraint> for Rc<dyn DataModel> {
+//     fn from(dm: Constraint) -> Rc<dyn DataModel> {
+//         Rc::new(dm)
+//     }
+// }
+
+impl_into_RcDataModel!(Constraint);

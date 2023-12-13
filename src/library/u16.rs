@@ -4,9 +4,10 @@ use std::fmt::Write;
 use std::rc::Rc;
 
 use crate::core::ParseError;
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase, Contextual};
+use crate::core::{DataModel, RcDataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, Named, DataModelBase, Contextual};
 use crate::core::bit_array::BitArray;
 use crate::core::feature_vector::FeatureVector;
+use crate::impl_into_RcDataModel;
 
 
 #[derive(Debug)]
@@ -99,8 +100,10 @@ impl Serializer for U16 {
     }
 }
 
-impl From<U16> for Rc<dyn DataModel> {
-    fn from(dm: U16) -> Rc<dyn DataModel> {
-        Rc::new(dm)
-    }
-}
+// impl From<U16> for Rc<dyn DataModel> {
+//     fn from(dm: U16) -> Rc<dyn DataModel> {
+//         Rc::new(dm)
+//     }
+// }
+
+impl_into_RcDataModel!(U16);

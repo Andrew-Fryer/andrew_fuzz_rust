@@ -1,6 +1,6 @@
 use std::{rc::{Rc, Weak}, collections::HashSet, fmt::Formatter};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase, Contextual, context::Children, feature_vector::FeatureVector, ParseError};
+use crate::{core::{DataModel, RcDataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, Named, DataModelBase, Contextual, context::Children, feature_vector::FeatureVector, ParseError}, impl_into_RcDataModel};
 
 
 pub struct Set {
@@ -138,8 +138,10 @@ impl std::fmt::Debug for Set {
     }
 }
 
-impl From<Set> for Rc<dyn DataModel> {
-    fn from(dm: Set) -> Rc<dyn DataModel> {
-        Rc::new(dm)
-    }
-}
+// impl From<Set> for Rc<dyn DataModel> {
+//     fn from(dm: Set) -> Rc<dyn DataModel> {
+//         Rc::new(dm)
+//     }
+// }
+
+impl_into_RcDataModel!(Set);

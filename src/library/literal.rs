@@ -98,3 +98,5 @@ impl From<U8> for Rc<dyn DataModel> {
         Rc::new(dm)
     }
 }
+
+impl_into_RcDataModel!(U8);

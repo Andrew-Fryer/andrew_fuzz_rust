@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet}, rc::Rc, borrow::Borrow, fmt::format};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, ParseError};
+use crate::{core::{DataModel, RcDataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, ParseError}, impl_into_RcDataModel};
 
 
 #[derive(Debug)]
@@ -19,8 +19,8 @@ impl Union {
             child,
         }
     }
-    pub fn new(name: &str, potential_children: Rc<Vec<Rc<dyn DataModel>>>, child: Rc<dyn DataModel>) -> Self {
-        let mut result = Self::new_no_name(potential_children, child);
+    pub fn new(name: &str, potential_children: Rc<Vec<RcDataModel>>, child: Rc<dyn DataModel>) -> Self {
+        let mut result = Self::new_no_name(Rc::new(potential_children.iter().map(|rcdm| rcdm.0).collect::<Vec<_>>()), child);
         result.set_name(name);
         result
     }
@@ -143,8 +143,10 @@ impl Serializer for Union {
     }
 }
 
-impl From<Union> for Rc<dyn DataModel> {
-    fn from(dm: Union) -> Rc<dyn DataModel> {
-        Rc::new(dm)
-    }
-}
+// impl From<Union> for Rc<dyn DataModel> {
+//     fn from(dm: Union) -> Rc<dyn DataModel> {
+//         Rc::new(dm)
+//     }
+// }
+
+impl_into_RcDataModel!(Union);

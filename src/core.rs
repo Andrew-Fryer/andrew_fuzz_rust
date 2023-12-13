@@ -14,6 +14,54 @@ pub mod bolts;
 
 pub trait DataModel: Breed + Cloneable + Contextual + Parser + Ast + Fuzzer + Named + Vectorizer + Serializer + std::fmt::Debug {}
 
+// I can't just use an alias, because I want to implement traits for Rc in my own way :)
+// pub type RcDataModel = Rc<dyn DataModel>;
+
+use std::ops::{Deref, DerefMut};
+
+pub struct RcDataModel(pub Rc<dyn DataModel>);
+
+impl RcDataModel {
+    pub fn new<T: Into<Rc<dyn DataModel>>>(dm: T) -> Self {
+        Self(dm.into())
+    }
+}
+
+impl Deref for RcDataModel {
+    type Target = Rc<dyn DataModel>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for RcDataModel {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl From<&RcDataModel> for RcDataModel {
+    fn from(rcdm: &RcDataModel) -> Self {
+        RcDataModel(rcdm.0.clone())
+    }
+}
+// impl Into<RcDataModel> for &RcDataModel {
+//     fn into(self) -> RcDataModel {
+//         self.clone()
+//     }
+// }
+
+#[macro_export]
+macro_rules! impl_into_RcDataModel {
+    ($t:ty) => {
+        impl Into<RcDataModel> for $t {
+            fn into(self) -> RcDataModel {
+                RcDataModel(Rc::new(self))
+            }
+        }
+    };
+}
 
 #[derive(Debug)]
 pub struct DataModelBase {

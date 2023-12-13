@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet}, rc::{Rc, Weak}};
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, bolts::ChildMap, ParseError};
+use crate::{core::{DataModel, RcDataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, bolts::ChildMap, ParseError}, impl_into_RcDataModel};
 
 #[derive(Debug)]
 pub struct Sequence {
@@ -122,8 +122,10 @@ impl Serializer for Sequence {
     }
 }
 
-impl From<Sequence> for Rc<dyn DataModel> {
-    fn from(dm: Sequence) -> Rc<dyn DataModel> {
-        Rc::new(dm)
-    }
-}
+// impl From<Sequence> for Rc<dyn DataModel> {
+//     fn from(dm: Sequence) -> Rc<dyn DataModel> {
+//         Rc::new(dm)
+//     }
+// }
+
+impl_into_RcDataModel!(Sequence);

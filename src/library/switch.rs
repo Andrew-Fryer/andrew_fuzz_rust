@@ -1,7 +1,7 @@
 use std::{collections::{HashMap, HashSet}, rc::Rc, borrow::Borrow, fmt::{format, Formatter}};
 use std::fmt::Debug;
 
-use crate::core::{DataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, ParseError};
+use crate::{core::{DataModel, RcDataModel, context::Context, Parser, Vectorizer, Serializer, Ast, Fuzzer, Cloneable, Breed, bit_array::BitArray, feature_vector::FeatureVector, DataModelBase, Named, Contextual, context::Children, ParseError}, impl_into_RcDataModel};
 
 
 pub struct Switch {
@@ -117,8 +117,10 @@ impl Serializer for Switch {
     }
 }
 
-impl From<Switch> for Rc<dyn DataModel> {
-    fn from(dm: Switch) -> Rc<dyn DataModel> {
-        Rc::new(dm)
-    }
-}
+// impl From<Switch> for Rc<dyn DataModel> {
+//     fn from(dm: Switch) -> Rc<dyn DataModel> {
+//         Rc::new(dm)
+//     }
+// }
+
+impl_into_RcDataModel!(Switch);
