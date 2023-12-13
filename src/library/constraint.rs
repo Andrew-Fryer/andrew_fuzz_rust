@@ -25,17 +25,17 @@ impl Constraint {
             constraint_fn,
         }
     }
-    pub fn new<T: Into<RcDataModel>>(name: &str, child: T, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> Self {
+    pub fn new<T: Into<RcDataModel>>(name: &str, child: T, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> RcDataModel {
         // let child = Rc::<dyn DataModel>::from(child);
         let mut result = Self::new_no_name(child.into(), constraint_fn);
         result.set_name(name);
-        result
+        Rc::new(result)
     }
 }
 
-pub fn constraint<T: Into<RcDataModel>>(name: &str, child: T, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> RcDataModel {
-    Rc::new(Constraint::new(name, child, constraint_fn))
-}
+// pub fn constraint<T: Into<RcDataModel>>(name: &str, child: T, constraint_fn: Rc<dyn Fn(Rc<Context>) -> bool>) -> RcDataModel {
+//     Rc::new(Constraint::new(name, child, constraint_fn))
+// }
 
 impl DataModel for Constraint {}
 

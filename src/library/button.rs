@@ -15,16 +15,19 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new() -> Self {
+    pub fn new_no_name() -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Button".to_string())),
         }
     }
+    pub fn new() -> RcDataModel {
+        Rc::new(Self::new_no_name())
+    }
 }
 
-pub fn button() -> RcDataModel {
-    Rc::new(Button::new())
-}
+// pub fn button() -> RcDataModel {
+//     Rc::new(Button::new())
+// }
 
 impl DataModel for Button {}
 

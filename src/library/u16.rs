@@ -17,8 +17,8 @@ pub struct U16 {
 }
 
 impl U16 {
-    pub fn new() -> Self {
-        Self::from_u16(0x00)
+    pub fn new() -> RcDataModel {
+        Rc::new(Self::from_u16(0x00))
     }
     pub fn from_u16(data: u16) -> Self {
         let b0 = (data >> 8) as u8;

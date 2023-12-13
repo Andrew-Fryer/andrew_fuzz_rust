@@ -17,18 +17,18 @@ impl Sequence {
             children,
         }
     }
-    pub fn new(name: &str, children: ChildMap) -> Self {
-        let mut result = Self::new_no_name(children);
+    pub fn new(name: &str, children: Vec<(&str, Rc<dyn DataModel>)>) -> RcDataModel {
+        let mut result = Self::new_no_name(ChildMap::new(children));
         result.set_name(name);
-        result
+        Rc::new(result)
     }
     // todo: this should probably be an interface or something...
     // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#
 }
 
-pub fn sequence(name: &str, children: Vec<(&str, RcDataModel)>) -> RcDataModel {
-    Rc::new(Sequence::new(name, ChildMap::new(children)))
-}
+// pub fn sequence(name: &str, children: Vec<(&str, RcDataModel)>) -> RcDataModel {
+//     Rc::new(Sequence::new(name, ChildMap::new(children)))
+// }
 
 impl DataModel for Sequence {}
 

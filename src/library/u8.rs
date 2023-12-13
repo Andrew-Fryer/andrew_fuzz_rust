@@ -18,8 +18,8 @@ pub struct U8 {
 }
 
 impl U8 {
-    pub fn new() -> Self {
-        Self::from_u8(0x00)
+    pub fn new() -> RcDataModel {
+        Rc::new(Self::from_u8(0x00))
     }
     pub fn from_u8(data: u8) -> Self {
         Self {

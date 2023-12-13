@@ -1,20 +1,21 @@
 use std::rc::Rc;
 
-use crate::{library::{sequence::{Sequence, sequence}, u8::U8, u16::U16, button::{Button, button}, union::{Union, union}, constraint::{Constraint, constraint}}, core::{DataModel, bolts::ChildMap, RcDataModel}};
+use crate::{library::{sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::RcDataModel};
 
-pub fn simple() -> Rc<dyn DataModel> {
-    let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
-    let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
-    sequence("simple_root", vec![
+
+pub fn simple() -> RcDataModel {
+    let uint8 = U8::new();
+    let uint16 = U16::new();
+    Sequence::new("simple_root", vec![
         ("first_field", uint8.clone()),
         ("second_field", uint16.clone()),
-        ("third_field", union("third_field_union", vec![
-            constraint("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
+        ("third_field", Union::new("third_field_union", vec![
+            Constraint::new("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
                 ctx.child().int() % 8 == 0
             })),
             uint16.clone(),
         ], uint16.clone())),
-        ("end", button()),
+        ("end", Button::new()),
     ])
 }
 

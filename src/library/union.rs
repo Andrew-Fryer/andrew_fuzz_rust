@@ -19,10 +19,10 @@ impl Union {
             child,
         }
     }
-    pub fn new(name: &str, potential_children: Rc<Vec<RcDataModel>>, child: Rc<dyn DataModel>) -> Self {
-        let mut result = Self::new_no_name(potential_children, child);
+    pub fn new(name: &str, potential_children: Vec<RcDataModel>, child: Rc<dyn DataModel>) -> RcDataModel {
+        let mut result = Self::new_no_name(Rc::new(potential_children), child);
         result.set_name(name);
-        result
+        Rc::new(result)
     }
     // todo: this should probably be an interface or something...
     // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#
@@ -31,9 +31,9 @@ impl Union {
     }
 }
 
-pub fn union(name: &str, potential_children: Vec<RcDataModel>, child: Rc<dyn DataModel>) -> RcDataModel {
-    Rc::new(Union::new(name, Rc::new(potential_children), child))
-}
+// pub fn union(name: &str, potential_children: Vec<RcDataModel>, child: Rc<dyn DataModel>) -> RcDataModel {
+//     Rc::new(Union::new(name, Rc::new(potential_children), child))
+// }
 
 impl DataModel for Union {}
 
