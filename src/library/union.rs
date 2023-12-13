@@ -20,7 +20,7 @@ impl Union {
         }
     }
     pub fn new(name: &str, potential_children: Rc<Vec<RcDataModel>>, child: Rc<dyn DataModel>) -> Self {
-        let mut result = Self::new_no_name(Rc::new(potential_children.iter().map(|rcdm| rcdm.0).collect::<Vec<_>>()), child);
+        let mut result = Self::new_no_name(potential_children, child);
         result.set_name(name);
         result
     }

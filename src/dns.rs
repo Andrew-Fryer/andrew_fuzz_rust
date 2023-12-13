@@ -3,13 +3,13 @@ use std::rc::Rc;
 use crate::{library::{sequence::Sequence, u8::U8, u16::U16, button::Button, union::Union, constraint::Constraint}, core::{DataModel, bolts::ChildMap, RcDataModel}};
 
 pub fn simple() -> Rc<dyn DataModel> {
-    let uint8 = RcDataModel(Rc::new(U8::new()));
+    let uint8: Rc<dyn DataModel> = Rc::new(U8::new());
     let uint16: Rc<dyn DataModel> = Rc::new(U16::new());
     Rc::new(Sequence::new("simple_root", ChildMap::from([
         ("first_field", uint8.clone()),
         ("second_field", uint16.clone()),
         ("third_field", Rc::new(Union::new("third_field_union", Rc::new(vec![
-            Rc::new(Constraint::new("divisibility_constraint", &uint8, Rc::new(|ctx| {
+            Rc::new(Constraint::new("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
                 ctx.child().int() % 8 == 0
             }))),
             uint16.clone(),
