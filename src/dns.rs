@@ -7,14 +7,14 @@ pub fn dns() -> Rc<dyn DataModel> {
     let uint8 = U8::new();
     let uint16 = U16::new();
 
-    let u32_sequence = Sequence::new("u32_sequence", vec![
+    let uint32= Sequence::new("u32_sequence", vec![
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
         ("b3", uint8.clone()),
     ]);
 
-    let u48_sequence = Sequence::new("u48_sequence", vec![
+    let uint48= Sequence::new("u48_sequence", vec![
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
@@ -23,7 +23,7 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("b5", uint8.clone()),
     ]);
 
-    let u128_sequence = Sequence::new("u128_sequence", vec![
+    let uint128= Sequence::new("u128_sequence", vec![
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
@@ -42,7 +42,7 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("b15", uint8.clone()),
     ]);
 
-    let u256_sequence = Sequence::new("u256_sequence", vec![
+    let uint256= Sequence::new("u256_sequence", vec![
         ("b0", uint8.clone()),
         ("b1", uint8.clone()),
         ("b2", uint8.clone()),
@@ -343,13 +343,11 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("signature", rr_sig_signature),
     ]);
 
-    let mut rr_key_blob = Set::new_no_name(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    let rr_key_blob = Set::new("rr_key_blob", uint8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
         let data_length = ctx.parent().parent().parent().parent().map()[&"body_length"].int();
         current_len == data_length - 4
     }));
-    rr_key_blob.set_name("rr_key_blob");
-    let rr_key_blob: Rc<dyn DataModel> = Rc::new(rr_key_blob);
     let rr_key = Sequence::new("rr_key", vec![
         ("flags", uint16.clone()),
         ("protocol", uint8.clone()),
@@ -357,27 +355,21 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("key", rr_key_blob), // todo: we could simplify this by just having one rr_body_blob field here
     ]);
 
-    let mut rr_nsec3_salt_blob = Set::new_no_name(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    let rr_nsec3_salt_blob = Set::new("rr_nsec3_salt_blob", uint8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
         let data_length = ctx.parent().map()[&"salt_length"].int();
         current_len == data_length
     }));
-    rr_nsec3_salt_blob.set_name("rr_nsec3_salt_blob");
-    let rr_nsec3_salt_blob: Rc<dyn DataModel> = Rc::new(rr_nsec3_salt_blob);
-    let mut rr_nsec3_hash_blob = Set::new_no_name(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    let rr_nsec3_hash_blob = Set::new("rr_nsec3_hash_blob", uint8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
         let data_length = ctx.parent().map()[&"hash_length"].int();
         current_len == data_length
     }));
-    rr_nsec3_hash_blob.set_name("rr_nsec3_hash_blob");
-    let rr_nsec3_hash_blob: Rc<dyn DataModel> = Rc::new(rr_nsec3_hash_blob);
-    let mut rr_nsec3_type_map_blob = Set::new_no_name(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    let rr_nsec3_type_map_blob = Set::new("rr_nsec3_type_map_blob", uint8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
         let data_length = ctx.parent().map()[&"length"].int();
         current_len == data_length
     }));
-    rr_nsec3_type_map_blob.set_name("rr_nsec3_type_map_blob");
-    let rr_nsec3_type_map_blob: Rc<dyn DataModel> = Rc::new(rr_nsec3_type_map_blob);
     let rr_nsec3_type_map = Sequence::new("rr_nsec3_type_map", vec![
         ("map_num", uint8.clone()),
         ("length", uint8.clone()),
@@ -395,20 +387,16 @@ pub fn dns() -> Rc<dyn DataModel> {
     ]);
 
     // https://datatracker.ietf.org/doc/html/rfc2845
-    let mut mac = Set::new_no_name(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    let mac = Set::new("mac", uint8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
         let data_length = ctx.parent().map()[&"mac_size"].int();
         current_len == data_length
     }));
-    mac.set_name("mac");
-    let mac = Rc::new(mac);
-    let mut other_data = Set::new_no_name(uint8.clone(), Vec::new(), Rc::new(|ctx| {
+    let other_data = Set::new("other_data", uint8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
         let data_length = ctx.parent().map()[&"other_data_length"].int();
         current_len == data_length
     }));
-    other_data.set_name("other_data");
-    let other_data = Rc::new(other_data);
     let rr_tsig = Sequence::new("rr_tsig", vec![
         ("algorithm", domain.clone()),
         ("time_signed", uint48.clone()),
@@ -421,7 +409,7 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("other_data", other_data),
     ]);
 
-    let fail = Rc::new(Constraint::new("fail", dummy.clone(), Rc::new(|_| false)));
+    let fail = Constraint::new("fail", dummy.clone(), Rc::new(|_| false));
     let mut rr_body_switch = Switch::new(Rc::new(vec![
         rr_a.clone(),
         rr_ns.clone(),
@@ -472,11 +460,11 @@ pub fn dns() -> Rc<dyn DataModel> {
     rr_body_constraint.set_name("rr_body_constraint");
     let rr_body_constraint = Rc::new(rr_body_constraint);
 
-    let rr_body_unknown = Rc::new(Set::new("rr_body_unknown", uint8.clone(), Rc::new(|ctx| {
+    let rr_body_unknown = Set::new("rr_body_unknown", uint8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
         let data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
         current_len == data_length
-    })));
+    }));
 
     let mut rr_body_or_unknown = Union::new_no_name(Rc::new(vec![
         rr_body_constraint,
@@ -609,25 +597,22 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("body_length", uint16.clone()),
         ("rr_body", rr_body_or_unknown),
     ]);
-    let mut question_set = Set::new_no_name(query.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int()));
-    question_set.set_name("question_set");
-    let mut answer_set = Set::new_no_name(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer"].int()));
-    answer_set.set_name("answer_set");
-    let mut authority_set = Set::new_no_name(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority"].int()));
-    authority_set.set_name("authority_set");
-    let mut additional_set = Set::new_no_name(resource_record.clone(), Vec::new(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional"].int()));
-    additional_set.set_name("additional_set");
-    let result = Rc::new("result", vec!ChildMap::from([
+    let question_set = Set::new("question_set", query.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int()));
+    let answer_set = Set::new("answer_set", resource_record.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer"].int()));
+    let authority_set = Set::new("authority_set", resource_record.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority"].int()));
+    let additional_set = Set::new("additional_set", resource_record.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional"].int()));
+    let dns = Sequence::new("result", vec![
         ("transactionId", uint16.clone()),
         ("flags", uint16.clone()),
         ("numQuestion", uint16.clone()),
         ("numAnswer", uint16.clone()),
         ("numAuthority", uint16.clone()),
         ("numAdditional", uint16.clone()),
-        ("question", Rc::new(question_set)),
-        ("answer", Rc::new(answer_set)),
-        ("authority", Rc::new(authority_set)),
-        ("additional", Rc::new(additional_set)),
-        ("end", Rc::new(Button::new())),
-    ]));
+        ("question", question_set),
+        ("answer", answer_set),
+        ("authority", authority_set),
+        ("additional", additional_set),
+        ("end", Button::new()),
+    ]);
+    dns
 }
