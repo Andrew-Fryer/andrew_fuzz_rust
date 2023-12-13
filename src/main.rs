@@ -1,16 +1,15 @@
 use std::rc::{Weak, Rc};
 
 
-use combinator_fuzzer::{core::{bit_array::BitArray, context::Context, context::Children}, dns};
+use combinator_fuzzer::{core::{bit_array::BitArray, context::Context, context::Children}, dns, simple_example_grammar};
 
 fn main() {
     // let mut grammar = dns::dns();
-    let mut grammar = dns::simple();
+    let mut grammar = dns::dns();
     // let mut input = BitArray::from_file("./input_data".to_string()).unwrap();
     // let mut input = BitArray::from_file("./.cur_input".to_string()).unwrap();
     // let mut input = BitArray::from_file("./small_dns_packet.binary".to_string()).unwrap();
-    // let mut input = BitArray::from_file("./.cur_input".to_string()).unwrap();
-    let mut input = BitArray::from_file("./.cur_simple_input".to_string()).unwrap();
+    let mut input = BitArray::from_file("./.cur_input".to_string()).unwrap();
     let ctx = Context::new(Weak::new(), Children::Zilch);
     let ast = grammar.parse(&mut input, &Rc::new(ctx)).unwrap();
     return;
@@ -47,8 +46,18 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-
-    // fn foo(x: DataModel) -> i32 {
-    //     0
-    // }
+    fn try_parse() {
+        let grammar = u::simple();
+        let mut input = BitArray::new();
+        let ctx = Context::new(Weak::new(), Children::Zilch);
+        let ast = grammar.parse(&mut input, &Rc::new(ctx)).unwrap();
+    }
+    #[test]
+    fn five_bytes() {}
+    #[test]
+    fn four_bytes_good() {}
+    #[test]
+    fn four_bytes_bad() {}
+    #[test]
+    fn three_bytes() {}
 }
