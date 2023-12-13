@@ -46,18 +46,32 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    fn try_parse() {
-        let grammar = u::simple();
-        let mut input = BitArray::new();
+    use std::rc::{Weak, Rc};
+
+    use combinator_fuzzer::{simple_example_grammar, core::{bit_array::BitArray, context::{Context, Children}}};
+
+    fn try_parse(input: Vec<u8>) -> bool {
+        let grammar = simple_example_grammar::simple();
+        let mut input = BitArray::new(input, None);
         let ctx = Context::new(Weak::new(), Children::Zilch);
-        let ast = grammar.parse(&mut input, &Rc::new(ctx)).unwrap();
+        let parse_result = grammar.parse(&mut input, &Rc::new(ctx));
+        let has_ast = parse_result.is_ok();
+        has_ast
     }
     #[test]
-    fn five_bytes() {}
+    fn five_bytes() {
+        assert!(try_parse(vec![0x00, 0x01, 0x02, 0x03, 0x04]))
+    }
     #[test]
-    fn four_bytes_good() {}
+    fn four_bytes_good() {
+        assert!(try_parse(vec![0x00, 0x01, 0x02, 0x07]))
+    }
     #[test]
-    fn four_bytes_bad() {}
+    fn four_bytes_bad() {
+        assert!(!try_parse(vec![0x00, 0x01, 0x02, 0x03]))
+    }
     #[test]
-    fn three_bytes() {}
+    fn three_bytes() {
+        assert!(!try_parse(vec![0x00, 0x01, 0x02]))
+    }
 }

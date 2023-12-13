@@ -11,7 +11,7 @@ pub fn simple() -> RcDataModel {
         ("second_field", uint16.clone()),
         ("third_field", Union::new("third_field_union", vec![
             Constraint::new("divisibility_constraint", uint8.clone(), Rc::new(|ctx| {
-                ctx.child().int() % 8 == 0
+                ctx.child().int() % 7 == 0
             })),
             uint16.clone(),
         ], uint16.clone())),
