@@ -19,7 +19,8 @@ impl Union {
             child,
         }
     }
-    pub fn new(name: &str, potential_children: Vec<RcDataModel>, child: Rc<dyn DataModel>) -> RcDataModel {
+    pub fn new(name: &str, potential_children: Vec<RcDataModel>) -> RcDataModel {
+        let child = potential_children[0].clone();
         let mut result = Self::new_no_name(Rc::new(potential_children), child);
         result.set_name(name);
         Rc::new(result)

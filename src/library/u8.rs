@@ -23,7 +23,7 @@ impl U8 {
     }
     pub fn from_u8(data: u8) -> Self {
         Self {
-            base: Rc::new(DataModelBase::new("U8".to_string())),
+            base: Rc::new(DataModelBase::new("u8".to_string())),
             data: BitArray::new(vec![data], None),
         }
         

@@ -13,13 +13,19 @@ pub struct Switch {
 }
 
 impl Switch {
-    pub fn new(potential_children: Rc<Vec<Rc<dyn DataModel>>>, child: Rc<dyn DataModel>, select_fn: Rc<dyn Fn(Rc<Context>) -> Rc<dyn DataModel>>) -> Self {
+    pub fn new_no_name(potential_children: Rc<Vec<Rc<dyn DataModel>>>, child: Rc<dyn DataModel>, select_fn: Rc<dyn Fn(Rc<Context>) -> Rc<dyn DataModel>>) -> Self {
         Self {
             base: Rc::new(DataModelBase::new("Switch".to_string())),
             potential_children,
             child,
             select_fn,
         }
+    }
+    pub fn new(name: &str, potential_children: Vec<RcDataModel>, select_fn: Rc<dyn Fn(Rc<Context>) -> Rc<dyn DataModel>>) -> RcDataModel {
+        let child = potential_children[0].clone();
+        let mut result = Self::new_no_name(Rc::new(potential_children), child, select_fn);
+        result.set_name(name);
+        Rc::new(result)
     }
     // todo: this should probably be an interface or something...
     // I think this is meant for making this better, but it still sucks IMHO: https://docs.rs/delegate/latest/delegate/#
