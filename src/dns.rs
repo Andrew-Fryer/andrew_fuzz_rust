@@ -593,10 +593,18 @@ pub fn dns() -> Rc<dyn DataModel> {
         ("body_length", u16.clone()),
         ("rr_body", rr_body_or_unknown),
     ]);
-    let question_set = Set::new("question_set", query.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int()));
-    let answer_set = Set::new("answer_set", resource_record.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer"].int()));
-    let authority_set = Set::new("authority_set", resource_record.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority"].int()));
-    let additional_set = Set::new("additional_set", resource_record.clone(), Rc::new(|ctx| ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional"].int()));
+    let question_set = Set::new("question_set", query.clone(), Rc::new(|ctx| {
+        ctx.vec().len() as i32 == ctx.parent().map()[&"numQuestion"].int()
+    }));
+    let answer_set = Set::new("answer_set", resource_record.clone(), Rc::new(|ctx| {
+        ctx.vec().len() as i32 == ctx.parent().map()[&"numAnswer"].int()
+    }));
+    let authority_set = Set::new("authority_set", resource_record.clone(), Rc::new(|ctx| {
+        ctx.vec().len() as i32 == ctx.parent().map()[&"numAuthority"].int()
+    }));
+    let additional_set = Set::new("additional_set", resource_record.clone(), Rc::new(|ctx| {
+        ctx.vec().len() as i32 == ctx.parent().map()[&"numAdditional"].int()
+    }));
     let dns = Sequence::new("result", vec![
         ("transactionId", u16.clone()),
         ("flags", u16.clone()),
