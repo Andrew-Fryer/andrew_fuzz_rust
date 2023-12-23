@@ -450,13 +450,11 @@ pub fn dns() -> Rc<dyn DataModel> {
     }));
 
     // TODO: I could make this more lenient by adding a Set that eats any extra bytes...
-    let mut rr_body_constraint = Constraint::new_no_name(rr_body_switch, Rc::new(|ctx| {
+    let rr_body_constraint = Constraint::new("rr_body_constraint", rr_body_switch, Rc::new(|ctx| {
         let actual_data_len = ctx.child().serialize().len() / 8;
         let required_data_length = ctx.parent().parent().map()[&"body_length".to_string()].int();
         actual_data_len == required_data_length
     }));
-    rr_body_constraint.set_name("rr_body_constraint");
-    let rr_body_constraint = Rc::new(rr_body_constraint);
 
     let rr_body_unknown = Set::new("rr_body_unknown", u8.clone(), Rc::new(|ctx| {
         let current_len = ctx.vec().len() as i32;
@@ -464,13 +462,10 @@ pub fn dns() -> Rc<dyn DataModel> {
         current_len == data_length
     }));
 
-    let mut rr_body_or_unknown = Union::new_no_name(Rc::new(vec![
+    let rr_body_or_unknown = Union::new("rr_body_or_unknown", vec![
         rr_body_constraint,
         rr_body_unknown, // this gives some robustness to the parser
-    ]), dummy.clone());
-    rr_body_or_unknown.set_name("rr_body_or_unknown");
-    let rr_body_or_unknown = Rc::new(rr_body_or_unknown);
-
+    ]);
 
 
     let mut rr_type_a = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
