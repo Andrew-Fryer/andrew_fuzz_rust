@@ -209,7 +209,7 @@ pub fn dns() -> Rc<dyn DataModel> {
 
 
     let rr_type_default = Constraint::new("rr_type_default", u16.clone(), Rc::new(|ctx| {
-        // no check; this is here as a shell so that traversing the tree is the same for all tt types
+        // no check; this is here as a shell so that traversing the tree is the same for all rr types
         true
     }));
 
@@ -217,7 +217,7 @@ pub fn dns() -> Rc<dyn DataModel> {
     let dummy = u8.clone(); // this is a silly placeholder that would be used if the grammar was used for generational fuzzing
 
 
-    let mut query_type = Union::new_no_name(Rc::new(vec![
+    let query_type = Union::new("query_type", vec![
         rr_type_a,
         rr_type_ns,
         rr_type_cname,
@@ -240,9 +240,7 @@ pub fn dns() -> Rc<dyn DataModel> {
         query_type_all,
 
         rr_type_default, // default (which will cause ambiguity, but whatever); I could do this a bit better by adding an OrderedUnion non-terminal
-    ]), dummy.clone());
-    query_type.set_name("query_type");
-    let query_type = Rc::new(query_type);
+    ]);
     let query = Sequence::new("query", vec![
         ("name", domain.clone()),
         ("type", query_type),
@@ -468,98 +466,67 @@ pub fn dns() -> Rc<dyn DataModel> {
     ]);
 
 
-    let mut rr_type_a = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_a = Constraint::new("rr_type_a", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 1
     }));
-    rr_type_a.set_name("rr_type_a");
-    let rr_type_a = Rc::new(rr_type_a);
 
-    let mut rr_type_ns = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_ns = Constraint::new("rr_type_ns", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 2
     }));
-    rr_type_ns.set_name("rr_type_ns");
-    let rr_type_ns = Rc::new(rr_type_ns);
 
-    let mut rr_type_cname = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_cname = Constraint::new("rr_type_cname", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 5
     }));
-    rr_type_cname.set_name("rr_type_cname");
-    let rr_type_cname = Rc::new(rr_type_cname);
 
-    let mut rr_type_soa = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_soa = Constraint::new("rr_type_soa", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 6
     }));
-    rr_type_soa.set_name("rr_type_soa");
-    let rr_type_soa = Rc::new(rr_type_soa);
 
-    let mut rr_type_ptr = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_ptr = Constraint::new("rr_type_ptr", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 12
     }));
-    rr_type_ptr.set_name("rr_type_ptr");
-    let rr_type_ptr = Rc::new(rr_type_ptr);
 
-    let mut rr_type_mx = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_mx = Constraint::new("rr_type_mx", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 15
     }));
-    rr_type_mx.set_name("rr_type_mx");
-    let rr_type_mx = Rc::new(rr_type_mx);
 
-    let mut rr_type_txt = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_txt = Constraint::new("rr_type_txt", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 16
     }));
-    rr_type_txt.set_name("rr_type_txt");
-    let rr_type_txt = Rc::new(rr_type_txt);
 
-    let mut rr_type_aaaa = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_aaaa = Constraint::new("rr_type_aaaa", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 28
     }));
-    rr_type_aaaa.set_name("rr_type_aaaa");
-    let rr_type_aaaa = Rc::new(rr_type_aaaa);
 
-    let mut rr_type_opt = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_opt = Constraint::new("rr_type_opt", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 41
     }));
-    rr_type_opt.set_name("rr_type_opt");
-    let rr_type_opt = Rc::new(rr_type_opt);
 
-    let mut rr_type_ds = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_ds = Constraint::new("rr_type_ds", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 43
     }));
-    rr_type_ds.set_name("rr_type_ds");
-    let rr_type_ds = Rc::new(rr_type_ds);
 
-    let mut rr_type_sig = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_sig = Constraint::new("rr_type_sig", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 46
     }));
-    rr_type_sig.set_name("rr_type_sig");
-    let rr_type_sig = Rc::new(rr_type_sig);
 
-    let mut rr_type_key = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_key = Constraint::new("rr_type_key", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 48
     }));
-    rr_type_key.set_name("rr_type_key");
-    let rr_type_key = Rc::new(rr_type_key);
 
-    let mut rr_type_nsec3 = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_nsec3 = Constraint::new("rr_type_nsec3", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 50
     }));
-    rr_type_nsec3.set_name("rr_type_nsec3");
-    let rr_type_nsec3 = Rc::new(rr_type_nsec3);
 
-
-    let mut rr_type_tsig = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
+    let rr_type_tsig = Constraint::new("rr_type_tsig", u16.clone(), Rc::new(|ctx| {
         ctx.child().int() == 250
     }));
-    rr_type_tsig.set_name("rr_type_tsig");
-    let rr_type_tsig = Rc::new(rr_type_tsig);
 
-
-    let mut rr_type_default = Constraint::new_no_name(u16.clone(), Rc::new(|ctx| {
-        // no check; this is here as a shell so that traversing the tree is the same for all tt types
+    let rr_type_default = Constraint::new("rr_type_default", u16.clone(), Rc::new(|ctx| {
+        // no check; this is here as a shell so that traversing the tree is the same for all rr types
         true
     }));
-    rr_type_default.set_name("rr_type_default");
-    let rr_type_default = Rc::new(rr_type_default);
+
 
     let rr_type_field = Union::new("rr_type_field", vec![
         rr_type_a,
